@@ -1,0 +1,27 @@
+<!doctype html>
+<!--
+  GitHub Pages has no server-side rewrites, so a hard refresh (or a
+  shared link) to a route like /get-in-touch normally 404s — GH Pages
+  serves this file for any unknown path. It re-encodes the path into a
+  query string and redirects to the real index.html, which decodes it
+  back via history.pushState before React Router ever sees it.
+  Standard technique: https://github.com/rafgraph/spa-github-pages
+-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Upstate Technology Solutions</title>
+    <script>
+      var segmentCount = 0;
+      var l = window.location;
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + segmentCount).join('/') + '/?/' +
+        l.pathname.slice(1).split('/').slice(segmentCount).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash
+      );
+    </script>
+  </head>
+  <body></body>
+</html>

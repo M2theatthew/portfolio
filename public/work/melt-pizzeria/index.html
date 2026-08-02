@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Melt Pizzeria – Local Toppings. Better Pizza.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #C8102E;
+    --dark-red: #8B0A1E;
+    --cream: #FBF5E6;
+    --dark: #1A1008;
+    --warm-gray: #6B5C4A;
+    --gold: #D4A017;
+    --white: #FFFFFF;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--dark);
+    color: var(--cream);
+    overflow-x: hidden;
+  }
+
+  /* ========= NAV ========= */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 3rem;
+    background: rgba(26,16,8,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(200,16,46,0.3);
+    transition: all 0.3s ease;
+  }
+
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 1.5rem;
+    color: var(--cream);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+  .nav-logo span { color: var(--red); }
+
+  .nav-links {
+    display: flex; gap: 2.5rem; list-style: none;
+  }
+  .nav-links a {
+    color: var(--cream); text-decoration: none;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 0.85rem; letter-spacing: 0.12em;
+    text-transform: uppercase; opacity: 0.85;
+    transition: opacity 0.2s, color 0.2s;
+  }
+  .nav-links a:hover { opacity: 1; color: var(--gold); }
+
+  .nav-cta {
+    background: var(--red);
+    color: var(--white) !important;
+    padding: 0.55rem 1.4rem;
+    border-radius: 2px;
+    opacity: 1 !important;
+    transition: background 0.2s !important;
+  }
+  .nav-cta:hover { background: var(--dark-red) !important; color: var(--white) !important; }
+
+  /* ========= HERO ========= */
+  .hero {
+    min-height: 100vh;
+    position: relative;
+    display: flex; align-items: center;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0;
+    background-image: url('assets/melt-img-1.jpg');
+    background-size: cover; background-position: center;
+    transform: scale(1.05);
+    animation: heroZoom 20s ease-in-out infinite alternate;
+  }
+  @keyframes heroZoom {
+    from { transform: scale(1.05); }
+    to { transform: scale(1.12); }
+  }
+
+  .hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(
+      110deg,
+      rgba(26,16,8,0.95) 40%,
+      rgba(26,16,8,0.55) 75%,
+      rgba(26,16,8,0.2) 100%
+    );
+  }
+
+  .hero-content {
+    position: relative; z-index: 2;
+    max-width: 1300px; margin: 0 auto; padding: 8rem 3rem 4rem;
+    width: 100%;
+  }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(200,16,46,0.15); border: 1px solid rgba(200,16,46,0.4);
+    padding: 0.35rem 1rem; border-radius: 2px; margin-bottom: 1.5rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.78rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--gold);
+    animation: fadeSlideUp 0.6s ease both;
+  }
+  .badge-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--red);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.4); }
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900; font-size: clamp(3.5rem, 7vw, 6.5rem);
+    line-height: 0.95; letter-spacing: -0.03em;
+    color: var(--cream);
+    animation: fadeSlideUp 0.6s 0.15s ease both;
+    margin-bottom: 0.3em;
+  }
+  .hero h1 .accent { color: var(--red); display: block; }
+
+  .hero-tagline {
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300; font-size: clamp(1rem, 2vw, 1.3rem);
+    color: rgba(251,245,230,0.75); letter-spacing: 0.04em;
+    max-width: 420px; line-height: 1.6;
+    animation: fadeSlideUp 0.6s 0.3s ease both;
+    margin-bottom: 2.5rem;
+  }
+
+  .hero-actions {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    animation: fadeSlideUp 0.6s 0.45s ease both;
+  }
+
+  .btn-primary {
+    background: var(--red); color: var(--white);
+    padding: 0.9rem 2.2rem; border: none; cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 0.9rem; letter-spacing: 0.1em;
+    text-transform: uppercase; text-decoration: none;
+    border-radius: 2px; transition: background 0.2s, transform 0.2s;
+    display: inline-block;
+  }
+  .btn-primary:hover { background: var(--dark-red); transform: translateY(-2px); }
+
+  .btn-secondary {
+    background: transparent; color: var(--cream);
+    padding: 0.9rem 2.2rem; border: 1px solid rgba(251,245,230,0.35); cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 0.9rem; letter-spacing: 0.1em;
+    text-transform: uppercase; text-decoration: none;
+    border-radius: 2px; transition: border-color 0.2s, color 0.2s, transform 0.2s;
+    display: inline-block;
+  }
+  .btn-secondary:hover { border-color: var(--gold); color: var(--gold); transform: translateY(-2px); }
+
+  .hero-stats {
+    position: absolute; bottom: 3rem; right: 3rem;
+    display: flex; gap: 2.5rem;
+    animation: fadeSlideUp 0.6s 0.6s ease both;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-number {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900; font-size: 2.2rem; color: var(--red); line-height: 1;
+  }
+  .stat-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: rgba(251,245,230,0.5); margin-top: 0.25rem;
+  }
+
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ========= ABOUT ========= */
+  .about {
+    background: var(--cream);
+    color: var(--dark);
+    padding: 7rem 3rem;
+  }
+  .about-inner {
+    max-width: 1300px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6rem; align-items: center;
+  }
+  .about-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 0.75rem; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--red); margin-bottom: 1rem;
+  }
+  .about h2 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900; font-size: clamp(2.2rem, 4vw, 3.2rem);
+    line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 1.5rem;
+  }
+  .about p {
+    font-size: 1.05rem; line-height: 1.8; color: var(--warm-gray); margin-bottom: 1.2rem;
+  }
+  .about-img-wrap {
+    position: relative;
+  }
+  .about-img-wrap img {
+    width: 100%; border-radius: 4px;
+    box-shadow: 20px 20px 0 var(--red);
+  }
+  .about-img-badge {
+    position: absolute; top: -1.5rem; right: -1.5rem;
+    background: var(--dark); color: var(--cream);
+    padding: 1.2rem 1.5rem; border-radius: 4px;
+    text-align: center;
+    font-family: 'Playfair Display', serif;
+  }
+  .about-img-badge .big { font-size: 2.5rem; font-weight: 900; color: var(--gold); line-height: 1; }
+  .about-img-badge .small { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.7; font-family: 'Barlow Condensed', sans-serif; }
+
+  .features {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem;
+  }
+  .feature {
+    padding: 1.2rem;
+    border: 1px solid rgba(26,16,8,0.1);
+    border-radius: 4px;
+    background: rgba(26,16,8,0.03);
+  }
+  .feature-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+  .feature h4 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 0.9rem; letter-spacing: 0.05em;
+    text-transform: uppercase; margin-bottom: 0.3rem;
+  }
+  .feature p { font-size: 0.85rem; color: var(--warm-gray); line-height: 1.5; margin: 0; }
+
+  /* ========= MENU SECTION ========= */
+  .menu-section {
+    background: var(--dark);
+    padding: 7rem 3rem;
+    position: relative;
+  }
+  .menu-section::before {
+    content: 'MENU';
+    position: absolute; top: 3rem; left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Playfair Display', serif;
+    font-size: 10rem; font-weight: 900;
+    color: rgba(255,255,255,0.02);
+    pointer-events: none; white-space: nowrap;
+    letter-spacing: -0.05em;
+  }
+  .section-header {
+    text-align: center; max-width: 600px; margin: 0 auto 4rem;
+  }
+  .section-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 0.75rem; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--red); margin-bottom: 0.75rem;
+  }
+  .section-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900; font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.1; letter-spacing: -0.02em;
+  }
+
+  .menu-img-container {
+    max-width: 900px; margin: 0 auto;
+    position: relative;
+  }
+  .menu-img-container img {
+    width: 100%; border-radius: 8px;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+    transition: transform 0.3s;
+  }
+  .menu-cta {
+    text-align: center; margin-top: 3rem;
+  }
+
+  /* ========= GALLERY ROW ========= */
+  .gallery {
+    display: grid; grid-template-columns: 1fr 1fr; height: 450px;
+  }
+  .gallery-item {
+    position: relative; overflow: hidden;
+  }
+  .gallery-item img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 0.6s ease;
+  }
+  .gallery-item:hover img { transform: scale(1.06); }
+  .gallery-item-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(26,16,8,0.8) 0%, transparent 60%);
+    display: flex; align-items: flex-end; padding: 2rem;
+  }
+  .gallery-caption {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 700; color: var(--cream);
+  }
+  .gallery-caption span { display: block; font-family: 'Barlow', sans-serif; font-size: 0.85rem; font-weight: 300; opacity: 0.75; margin-top: 0.25rem; }
+
+  /* ========= REVIEWS ========= */
+  .reviews {
+    background: var(--cream); color: var(--dark);
+    padding: 7rem 3rem;
+  }
+  .reviews .section-header h2 { color: var(--dark); }
+  .reviews .section-label { color: var(--red); }
+
+  .reviews-grid {
+    max-width: 1300px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+  }
+
+  .review-card {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 4px;
+    box-shadow: 0 4px 20px rgba(26,16,8,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-top: 3px solid var(--red);
+  }
+  .review-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(26,16,8,0.12); }
+
+  .stars { color: var(--gold); font-size: 1rem; margin-bottom: 1rem; letter-spacing: 0.05em; }
+  .review-text {
+    font-size: 0.95rem; line-height: 1.7; color: var(--warm-gray);
+    font-style: italic; margin-bottom: 1.25rem;
+  }
+  .reviewer {
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .reviewer-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--red); color: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 0.9rem;
+  }
+  .reviewer-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 0.9rem; letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .reviewer-date { font-size: 0.75rem; color: #999; }
+
+  .reviews-summary {
+    max-width: 1300px; margin: 3rem auto 0;
+    text-align: center;
+    padding: 2rem;
+    background: var(--dark); border-radius: 4px;
+    color: var(--cream);
+  }
+  .reviews-summary-big {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem; font-weight: 900; color: var(--gold); line-height: 1;
+  }
+  .reviews-summary p {
+    font-size: 0.85rem; opacity: 0.6; letter-spacing: 0.05em; margin-top: 0.5rem;
+    font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;
+  }
+
+  /* ========= HOURS & CONTACT ========= */
+  .contact-section {
+    background: #110C06;
+    padding: 7rem 3rem;
+  }
+  .contact-inner {
+    max-width: 1300px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6rem;
+  }
+  .contact-info .section-label { margin-bottom: 0.75rem; }
+  .contact-info h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 3.5vw, 2.8rem); font-weight: 900;
+    margin-bottom: 2rem; letter-spacing: -0.02em;
+  }
+
+  .contact-detail {
+    display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem;
+  }
+  .contact-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(200,16,46,0.15); border: 1px solid rgba(200,16,46,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+  }
+  .contact-detail-text strong {
+    display: block; font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 0.2rem;
+  }
+  .contact-detail-text span {
+    font-size: 0.95rem; opacity: 0.8; line-height: 1.5;
+  }
+  .contact-detail-text a {
+    color: var(--cream); text-decoration: none; opacity: 0.8;
+    transition: opacity 0.2s, color 0.2s;
+  }
+  .contact-detail-text a:hover { opacity: 1; color: var(--gold); }
+
+  .hours-grid {
+    margin-top: 2rem;
+  }
+  .hours-grid h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 0.75rem; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--red); margin-bottom: 1rem;
+  }
+  .hours-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.65rem 0; border-bottom: 1px solid rgba(251,245,230,0.08);
+    font-size: 0.9rem;
+  }
+  .hours-row:last-child { border-bottom: none; }
+  .hours-day { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: 0.05em; }
+  .hours-time { opacity: 0.65; }
+  .hours-closed { color: var(--red); opacity: 1; font-weight: 600; }
+  .hours-today { color: var(--gold); }
+
+  .map-embed {
+    border-radius: 8px; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    height: 350px;
+  }
+  .map-embed iframe {
+    width: 100%; height: 100%; border: none;
+  }
+  .social-row {
+    display: flex; gap: 1rem; margin-top: 2rem;
+  }
+  .social-btn {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border: 1px solid rgba(251,245,230,0.2); border-radius: 2px;
+    color: var(--cream); text-decoration: none; font-size: 0.85rem;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .social-btn:hover { border-color: var(--red); color: var(--red); }
+
+  /* ========= FOOTER ========= */
+  footer {
+    background: var(--dark);
+    border-top: 1px solid rgba(251,245,230,0.06);
+    padding: 2.5rem 3rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  footer .logo {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900; font-size: 1.2rem;
+    color: var(--cream);
+  }
+  footer .logo span { color: var(--red); }
+  footer p {
+    font-size: 0.78rem; opacity: 0.4; letter-spacing: 0.05em;
+    font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;
+  }
+
+  /* ========= HAMBURGER ========= */
+  .hamburger { display: none; cursor: pointer; background: none; border: none; }
+  .hamburger span {
+    display: block; width: 24px; height: 2px;
+    background: var(--cream); margin: 5px 0;
+    transition: all 0.3s;
+  }
+
+  /* ========= MOBILE ========= */
+  @media (max-width: 900px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--dark); flex-direction: column; align-items: center; justify-content: center; gap: 3rem; z-index: 999; }
+    .nav-links.open { display: flex; }
+    .nav-links a { font-size: 1.5rem; }
+    .hamburger { display: block; z-index: 1001; position: relative; }
+    .hero-content { padding: 7rem 1.5rem 3rem; }
+    .hero-stats { position: static; justify-content: center; padding: 2rem 1.5rem 3rem; }
+    .about-inner { grid-template-columns: 1fr; gap: 3rem; }
+    .about { padding: 5rem 1.5rem; }
+    .about-img-badge { display: none; }
+    .gallery { grid-template-columns: 1fr; height: auto; }
+    .gallery-item { height: 280px; }
+    .reviews-grid { grid-template-columns: 1fr; }
+    .reviews { padding: 5rem 1.5rem; }
+    .contact-inner { grid-template-columns: 1fr; gap: 3rem; }
+    .contact-section { padding: 5rem 1.5rem; }
+    .menu-section { padding: 5rem 1.5rem; }
+    footer { flex-direction: column; gap: 1rem; text-align: center; padding: 2rem 1.5rem; }
+  }
+
+  /* ========= SCROLL ANIM ========= */
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1; transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a href="#" class="nav-logo">The <span>Melt</span></a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#about">About</a></li>
+    <li><a href="#menu">Menu</a></li>
+    <li><a href="#reviews">Reviews</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="https://themeltpizzeria.com" target="_blank" class="nav-cta">Order Online</a></li>
+  </ul>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <div class="badge-dot"></div>
+      Honea Path, South Carolina
+    </div>
+    <h1>
+      Local Toppings.
+      <span class="accent">Better Pizza.</span>
+    </h1>
+    <p class="hero-tagline">Hand-tossed NY Style dough, fresh local ingredients, and 10 years of serving our community.</p>
+    <div class="hero-actions">
+      <a href="https://themeltpizzeria.com" target="_blank" class="btn-primary">Order Online</a>
+      <a href="#menu" class="btn-secondary">View Menu</a>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-number">10+</div>
+      <div class="stat-label">Years Open</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">4.6★</div>
+      <div class="stat-label">Google Rating</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">98%</div>
+      <div class="stat-label">Recommend</div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="about-inner">
+    <div class="reveal">
+      <div class="about-label">Our Story</div>
+      <h2>A Decade of Delicious in Honea Path</h2>
+      <p>Thank you for an amazing 10 years. As a locally owned small business, we are excited to serve you the best quality pizza at the best prices around. Thank you for your support!</p>
+      <p>We always love to see you in person — but even when we can't, we ensure that your dining experience is top notch. Dine in or carry out, we're here for you.</p>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🌾</div>
+          <h4>Local Toppings</h4>
+          <p>Sourced from nearby farms — the freshest ingredients the season has to offer.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🍕</div>
+          <h4>Hand-Tossed Dough</h4>
+          <p>NY-style crust made fresh in-house every single day.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🏡</div>
+          <h4>Family Owned</h4>
+          <p>Community first. We know your name when you walk in.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🫙</div>
+          <h4>Best Mozzarella</h4>
+          <p>We never compromise on quality. The best cheese available, always.</p>
+        </div>
+      </div>
+    </div>
+    <div class="about-img-wrap reveal">
+      <img src="assets/melt-img-2.jpg" alt="The Melt Pizzeria storefront">
+      <div class="about-img-badge">
+        <div class="big">10</div>
+        <div class="small">Years of<br>Great Pizza</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY ROW -->
+<div class="gallery">
+  <div class="gallery-item">
+    <img src="assets/melt-img-3.jpg" alt="Fresh pepperoni pizza">
+    <div class="gallery-item-overlay">
+      <div class="gallery-caption">Pepperoni Pizza<span>Hand-tossed, loaded with flavor</span></div>
+    </div>
+  </div>
+  <div class="gallery-item">
+    <img src="assets/melt-img-4.jpg" alt="Inside The Melt Pizzeria">
+    <div class="gallery-item-overlay">
+      <div class="gallery-caption">Dine In<span>A cozy spot just for you</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- MENU -->
+<section class="menu-section" id="menu">
+  <div class="section-header reveal">
+    <div class="section-label">What We Serve</div>
+    <h2>Our Full Menu</h2>
+  </div>
+  <div class="menu-img-container reveal">
+    <img src="assets/melt-img-5.jpg" alt="The Melt Pizzeria Full Menu">
+  </div>
+  <div class="menu-cta reveal">
+    <a href="https://themeltpizzeria.com" target="_blank" class="btn-primary" style="font-size:1rem; padding: 1rem 2.5rem;">Order Online Now</a>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="reviews" id="reviews">
+  <div class="section-header reveal">
+    <div class="section-label">What People Say</div>
+    <h2>Our Customers Love Us</h2>
+  </div>
+  <div class="reviews-grid">
+    <div class="review-card reveal">
+      <div class="stars">★★★★★</div>
+      <p class="review-text">"Ate at the Honea Path location tonight and the Garlic Parm wings are absolutely to die for. The pizza was perfect and the staff was incredibly welcoming."</p>
+      <div class="reviewer">
+        <div class="reviewer-avatar">EP</div>
+        <div>
+          <div class="reviewer-name">Erica Parker</div>
+          <div class="reviewer-date">October 2025</div>
+        </div>
+      </div>
+    </div>
+    <div class="review-card reveal">
+      <div class="stars">★★★★★</div>
+      <p class="review-text">"I'll give my second born for the bacon cheeseburger pizza. It's literally the best pizza I've ever had in my entire life! I could eat it every day."</p>
+      <div class="reviewer">
+        <div class="reviewer-avatar">SK</div>
+        <div>
+          <div class="reviewer-name">Sky K.</div>
+          <div class="reviewer-date">Google Review</div>
+        </div>
+      </div>
+    </div>
+    <div class="review-card reveal">
+      <div class="stars">★★★★★</div>
+      <p class="review-text">"Awesome pizza and super nice people! Some of the best pizza I've ever had, across multiple states. The staff are extremely nice! Highly recommended!"</p>
+      <div class="reviewer">
+        <div class="reviewer-avatar">JP</div>
+        <div>
+          <div class="reviewer-name">Jarrod Pawlak</div>
+          <div class="reviewer-date">December 2024</div>
+        </div>
+      </div>
+    </div>
+    <div class="review-card reveal">
+      <div class="stars">★★★★★</div>
+      <p class="review-text">"Very good pizza for being out in this little town. I'm from NY and the pizza here in SC is terrible... This is hands down the best pizza in this area."</p>
+      <div class="reviewer">
+        <div class="reviewer-avatar">BV</div>
+        <div>
+          <div class="reviewer-name">B. Val</div>
+          <div class="reviewer-date">Google Review</div>
+        </div>
+      </div>
+    </div>
+    <div class="review-card reveal">
+      <div class="stars">★★★★★</div>
+      <p class="review-text">"Food and staff are always terrific. We have been visiting for over 3 years now and drive 20 minutes to get the great pizza and service we are always greeted with."</p>
+      <div class="reviewer">
+        <div class="reviewer-avatar">DB</div>
+        <div>
+          <div class="reviewer-name">Dan Baron</div>
+          <div class="reviewer-date">Google Review</div>
+        </div>
+      </div>
+    </div>
+    <div class="review-card reveal">
+      <div class="stars">★★★★★</div>
+      <p class="review-text">"The crust is the most perfect, amazing crust ever! Their Cheeseburger pizza is worth wrestling a bear to get to. Excellent service with a smile!"</p>
+      <div class="reviewer">
+        <div class="reviewer-avatar">VM</div>
+        <div>
+          <div class="reviewer-name">VooDew MoonDragon</div>
+          <div class="reviewer-date">Google Review</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="reviews-summary reveal">
+    <div class="reviews-summary-big">98%</div>
+    <p>Of customers recommend The Melt Pizzeria · Based on 119+ reviews</p>
+  </div>
+</section>
+
+<!-- CONTACT / HOURS -->
+<section class="contact-section" id="contact">
+  <div class="contact-inner">
+    <div class="contact-info reveal">
+      <div class="section-label">Find Us</div>
+      <h2>Visit The Melt</h2>
+      <div class="contact-detail">
+        <div class="contact-icon">📍</div>
+        <div class="contact-detail-text">
+          <strong>Address</strong>
+          <span>315 East Greer Street<br>Honea Path, SC 29654</span>
+        </div>
+      </div>
+      <div class="contact-detail">
+        <div class="contact-icon">📞</div>
+        <div class="contact-detail-text">
+          <strong>Phone</strong>
+          <span><a href="tel:8642107050">(864) 210-7050</a></span>
+        </div>
+      </div>
+      <div class="contact-detail">
+        <div class="contact-icon">✉️</div>
+        <div class="contact-detail-text">
+          <strong>Email</strong>
+          <span><a href="mailto:themeltpizzeria1@gmail.com">themeltpizzeria1@gmail.com</a></span>
+        </div>
+      </div>
+      <div class="hours-grid">
+        <h3>Hours of Operation</h3>
+        <div class="hours-row">
+          <span class="hours-day">Monday</span>
+          <span class="hours-time">4:00 PM – 9:00 PM</span>
+        </div>
+        <div class="hours-row">
+          <span class="hours-day">Tuesday</span>
+          <span class="hours-time hours-closed">Closed</span>
+        </div>
+        <div class="hours-row">
+          <span class="hours-day">Wednesday</span>
+          <span class="hours-time">11:00 AM – 9:00 PM</span>
+        </div>
+        <div class="hours-row">
+          <span class="hours-day">Thursday</span>
+          <span class="hours-time">11:00 AM – 9:00 PM</span>
+        </div>
+        <div class="hours-row">
+          <span class="hours-day">Friday</span>
+          <span class="hours-time">11:00 AM – 9:00 PM</span>
+        </div>
+        <div class="hours-row">
+          <span class="hours-day">Saturday</span>
+          <span class="hours-time">4:00 PM – 9:00 PM</span>
+        </div>
+        <div class="hours-row">
+          <span class="hours-day">Sunday</span>
+          <span class="hours-time">12:00 PM – 9:00 PM</span>
+        </div>
+      </div>
+      <div class="social-row">
+        <a href="https://www.facebook.com/TheMeltPizzeria/" target="_blank" class="social-btn">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          Facebook
+        </a>
+        <a href="https://www.instagram.com/themeltpizzeria" target="_blank" class="social-btn">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          Instagram
+        </a>
+      </div>
+    </div>
+    <div class="reveal">
+      <div class="map-embed">
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3292.3!2d-82.3887!3d34.4504!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x885712345%3A0x0!2s315+E+Greer+St%2C+Honea+Path%2C+SC+29654!5e0!3m2!1sen!2sus!4v1"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          title="The Melt Pizzeria location map">
+        </iframe>
+      </div>
+      <div style="margin-top:2rem; padding: 1.5rem; background: rgba(200,16,46,0.1); border: 1px solid rgba(200,16,46,0.25); border-radius: 4px;">
+        <p style="font-family: 'Barlow Condensed', sans-serif; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; font-size:0.75rem; color: var(--gold); margin-bottom:0.75rem;">Ready to Order?</p>
+        <p style="font-size:0.9rem; opacity:0.75; line-height:1.6; margin-bottom:1.25rem;">Order online for pickup, or give us a call. We're ready when you are!</p>
+        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+          <a href="https://themeltpizzeria.com" target="_blank" class="btn-primary">Order Online</a>
+          <a href="tel:8642107050" class="btn-secondary">Call Us</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo">The <span>Melt</span> Pizzeria</div>
+  <p>© 2025 The Melt Pizzeria · 315 East Greer Street, Honea Path, SC · All Rights Reserved</p>
+  <p>Local Toppings. Better Pizza.</p>
+</footer>
+
+<script>
+  // Mobile nav toggle
+  const hamburger = document.getElementById('hamburger');
+  const navLinks = document.getElementById('navLinks');
+  hamburger.addEventListener('click', () => {
+    navLinks.classList.toggle('open');
+    hamburger.classList.toggle('active');
+  });
+  navLinks.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => navLinks.classList.remove('open'));
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Navbar scroll effect
+  window.addEventListener('scroll', () => {
+    const nav = document.getElementById('navbar');
+    if (window.scrollY > 60) {
+      nav.style.paddingTop = '0.65rem';
+      nav.style.paddingBottom = '0.65rem';
+    } else {
+      nav.style.paddingTop = '1rem';
+      nav.style.paddingBottom = '1rem';
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,272 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
+body {
+  background: #040409;
+  color: #f0f0f5;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  background: #040409;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  body { cursor: none; }
+  a, button { cursor: none; }
+}
+
+::selection {
+  background: #49c5b6;
+  color: #040409;
+}
+
+/* ── Scan lines overlay ─────────────────────────────── */
+.scanlines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 80;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.18) 2px,
+    rgba(0, 0, 0, 0.18) 4px
+  );
+  animation: scanRoll 12s linear infinite;
+}
+
+@keyframes scanRoll {
+  0%   { background-position: 0 0; }
+  100% { background-position: 0 400px; }
+}
+
+/* ── Noise grain ──────────────────────────────────────── */
+.grain {
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  pointer-events: none;
+  z-index: 70;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  animation: grainAnim 0.3s steps(3) infinite;
+}
+@keyframes grainAnim {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(-1%, 1%) scale(1.01); }
+  66%  { transform: translate(1%, -0.5%) scale(0.99); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+/* ── Glitch text ──────────────────────────────────────── */
+.glitch {
+  position: relative;
+  display: inline-block;
+}
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.glitch::before {
+  color: #ff3d6e;
+  animation: glitchTop 5s steps(2) infinite;
+  clip-path: polygon(0 0, 100% 0, 100% 42%, 0 42%);
+}
+.glitch::after {
+  color: #49c5b6;
+  animation: glitchBot 5.3s steps(2) infinite;
+  clip-path: polygon(0 58%, 100% 58%, 100% 100%, 0 100%);
+}
+@keyframes glitchTop {
+  0%, 90%, 100%  { transform: translate(0); opacity: 0; }
+  92%            { transform: translate(-4px, -2px); opacity: 0.9; }
+  94%            { transform: translate(3px, 0); opacity: 0.9; }
+  96%            { transform: translate(-2px, 1px); opacity: 0.9; }
+  98%            { transform: translate(0); opacity: 0; }
+}
+@keyframes glitchBot {
+  0%, 87%, 100%  { transform: translate(0); opacity: 0; }
+  89%            { transform: translate(4px, 2px); opacity: 0.9; }
+  91%            { transform: translate(-3px, -1px); opacity: 0.9; }
+  93%            { transform: translate(2px, 0); opacity: 0.9; }
+  95%            { transform: translate(0); opacity: 0; }
+}
+
+/* ── Horizontal glitch bar sweep ─────────────────────── */
+.glitch-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 61, 110, 0.6);
+  animation: barSweep 7s ease-in-out infinite;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+@keyframes barSweep {
+  0%, 100%    { top: -10%; opacity: 0; }
+  10%, 11%    { opacity: 1; }
+  50%         { top: 110%; opacity: 1; }
+  51%         { opacity: 0; }
+  52%, 99%    { top: 110%; opacity: 0; }
+}
+
+/* ── 3D card scene ────────────────────────────────────── */
+.scene {
+  perspective: 1100px;
+  perspective-origin: 50% 45%;
+}
+
+.card-3d {
+  position: absolute;
+  transform-style: preserve-3d;
+  will-change: transform;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.5s ease;
+}
+.card-3d::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+}
+.card-3d:hover::after {
+  border-color: rgba(73, 197, 182, 0.3);
+}
+
+/* ── Cursor ───────────────────────────────────────────── */
+.cursor-dot {
+  position: fixed;
+  top: 0; left: 0;
+  width: 5px; height: 5px;
+  background: #49c5b6;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px rgba(73,197,182,0.9);
+  transition: transform 0.1s;
+}
+.cursor-ring {
+  position: fixed;
+  top: 0; left: 0;
+  width: 32px; height: 32px;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s cubic-bezier(0.16,1,0.3,1),
+              height 0.3s cubic-bezier(0.16,1,0.3,1),
+              border-color 0.3s, opacity 0.3s;
+}
+
+/* ── Pillbox nav ──────────────────────────────────────── */
+.pillbox {
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  background: rgba(4,4,9,0.55);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 9999px;
+  transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+
+.pillbox-menu {
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  background: rgba(4,4,9,0.85);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 40px -12px rgba(0,0,0,0.6);
+}
+
+/* ── Side project list ────────────────────────────────── */
+.project-item {
+  position: relative;
+  padding-left: 16px;
+  transition: color 0.3s;
+}
+.project-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  transition: background 0.3s;
+}
+.project-item.active {
+  color: #fff;
+}
+.project-item.active::before {
+  background: #49c5b6;
+  box-shadow: 0 0 6px #49c5b6;
+}
+
+/* ── Fade-in utility ──────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up {
+  animation: fadeUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Opacity-only fade — safe to use on elements whose `transform`
+   is being driven by JS every frame (e.g. .card-3d), since a normal
+   CSS animation on `transform` would otherwise permanently override
+   those JS writes once the animation finishes. */
+@keyframes fadeInOnly {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.fade-in-only {
+  animation: fadeInOnly 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Reveal on scroll (Work/About/Contact sections) ──── */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1),
+              transform 0.9s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
