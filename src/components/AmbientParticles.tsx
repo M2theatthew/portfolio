@@ -36,17 +36,28 @@ export default function AmbientParticles({
     let width = 0;
     let height = 0;
 
-    // Static per-frame gradients (same geometry/color-stops every draw) -
-    // rebuilt only when the container resizes, not on every animation frame.
-    let glowGradients: CanvasGradient[] = [];
+    // Static per-frame gradients (same geometry/color-stops every draw) are
+    // pre-composited into an offscreen bitmap once per resize, rather than
+    // re-filling the full canvas with each gradient every single frame —
+    // same fix as SceneCanvas, for the same reason (cheap in Chrome,
+    // expensive full-canvas overdraw in Firefox).
+    const bgCanvas = document.createElement('canvas');
+    const bgCtx = bgCanvas.getContext('2d')!;
     const buildGlowGradients = () => {
-      glowGradients = glows.map((g) => {
+      bgCanvas.width = canvas.width;
+      bgCanvas.height = canvas.height;
+      bgCtx.setTransform(1, 0, 0, 1, 0, 0);
+      bgCtx.scale(dpr, dpr);
+      bgCtx.clearRect(0, 0, width, height);
+
+      for (const g of glows) {
         const r = width * (g.radiusFrac ?? 0.3);
-        const grad = ctx.createRadialGradient(width * g.x, height * g.y, 0, width * g.x, height * g.y, r);
+        const grad = bgCtx.createRadialGradient(width * g.x, height * g.y, 0, width * g.x, height * g.y, r);
         grad.addColorStop(0, `hsla(${g.hue}, 80%, 55%, ${g.alpha ?? 0.1})`);
         grad.addColorStop(1, 'rgba(0,0,0,0)');
-        return grad;
-      });
+        bgCtx.fillStyle = grad;
+        bgCtx.fillRect(0, 0, width, height);
+      }
     };
 
     const resize = () => {
@@ -99,10 +110,9 @@ export default function AmbientParticles({
     const draw = () => {
       ctx.clearRect(0, 0, width, height);
 
-      for (const grad of glowGradients) {
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, width, height);
-      }
+      // Glows are translucent, not opaque — still need the clearRect above,
+      // but this is one blit instead of one fillRect per glow.
+      ctx.drawImage(bgCanvas, 0, 0, width, height);
 
       for (const p of dust) {
         p.x += p.vx;
