@@ -74,36 +74,52 @@ export default function SceneCanvas() {
     const w = () => window.innerWidth;
     const h = () => window.innerHeight;
 
+    // These four gradients never change frame-to-frame (same geometry,
+    // same color stops) - building them fresh 60x/sec was pure waste.
+    // Cache them and only rebuild on resize.
+    let bg: CanvasGradient;
+    let centerGlow: CanvasGradient;
+    let pinkGlow: CanvasGradient;
+    let tealGlow: CanvasGradient;
+
+    const buildGradients = () => {
+      bg = ctx.createRadialGradient(w() * 0.5, h() * 0.45, 0, w() * 0.5, h() * 0.45, w() * 0.7);
+      bg.addColorStop(0, 'rgba(8, 10, 22, 0.98)');
+      bg.addColorStop(0.5, 'rgba(4, 4, 9, 0.99)');
+      bg.addColorStop(1, 'rgba(2, 2, 6, 1)');
+
+      centerGlow = ctx.createRadialGradient(w() * 0.5, h() * 0.46, 0, w() * 0.5, h() * 0.46, w() * 0.38);
+      centerGlow.addColorStop(0, 'rgba(40, 60, 80, 0.12)');
+      centerGlow.addColorStop(1, 'rgba(0,0,0,0)');
+
+      pinkGlow = ctx.createRadialGradient(w() * 0.78, h() * 0.5, 0, w() * 0.78, h() * 0.5, w() * 0.28);
+      pinkGlow.addColorStop(0, 'rgba(180, 30, 80, 0.09)');
+      pinkGlow.addColorStop(1, 'rgba(0,0,0,0)');
+
+      tealGlow = ctx.createRadialGradient(w() * 0.18, h() * 0.55, 0, w() * 0.18, h() * 0.55, w() * 0.22);
+      tealGlow.addColorStop(0, 'rgba(20, 100, 90, 0.07)');
+      tealGlow.addColorStop(1, 'rgba(0,0,0,0)');
+    };
+    buildGradients();
+    window.addEventListener('resize', buildGradients);
+
     let raf = 0;
     const render = () => {
       ctx.clearRect(0, 0, w(), h());
 
       // Deep background gradient
-      const bg = ctx.createRadialGradient(w() * 0.5, h() * 0.45, 0, w() * 0.5, h() * 0.45, w() * 0.7);
-      bg.addColorStop(0, 'rgba(8, 10, 22, 0.98)');
-      bg.addColorStop(0.5, 'rgba(4, 4, 9, 0.99)');
-      bg.addColorStop(1, 'rgba(2, 2, 6, 1)');
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w(), h());
 
       // Subtle center glow
-      const centerGlow = ctx.createRadialGradient(w() * 0.5, h() * 0.46, 0, w() * 0.5, h() * 0.46, w() * 0.38);
-      centerGlow.addColorStop(0, 'rgba(40, 60, 80, 0.12)');
-      centerGlow.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = centerGlow;
       ctx.fillRect(0, 0, w(), h());
 
       // Right side pink atmospheric glow
-      const pinkGlow = ctx.createRadialGradient(w() * 0.78, h() * 0.5, 0, w() * 0.78, h() * 0.5, w() * 0.28);
-      pinkGlow.addColorStop(0, 'rgba(180, 30, 80, 0.09)');
-      pinkGlow.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = pinkGlow;
       ctx.fillRect(0, 0, w(), h());
 
       // Left side teal atmospheric glow
-      const tealGlow = ctx.createRadialGradient(w() * 0.18, h() * 0.55, 0, w() * 0.18, h() * 0.55, w() * 0.22);
-      tealGlow.addColorStop(0, 'rgba(20, 100, 90, 0.07)');
-      tealGlow.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = tealGlow;
       ctx.fillRect(0, 0, w(), h());
 
@@ -156,6 +172,7 @@ export default function SceneCanvas() {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
+      window.removeEventListener('resize', buildGradients);
     };
   }, []);
 

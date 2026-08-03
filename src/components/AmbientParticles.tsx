@@ -36,6 +36,19 @@ export default function AmbientParticles({
     let width = 0;
     let height = 0;
 
+    // Static per-frame gradients (same geometry/color-stops every draw) -
+    // rebuilt only when the container resizes, not on every animation frame.
+    let glowGradients: CanvasGradient[] = [];
+    const buildGlowGradients = () => {
+      glowGradients = glows.map((g) => {
+        const r = width * (g.radiusFrac ?? 0.3);
+        const grad = ctx.createRadialGradient(width * g.x, height * g.y, 0, width * g.x, height * g.y, r);
+        grad.addColorStop(0, `hsla(${g.hue}, 80%, 55%, ${g.alpha ?? 0.1})`);
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        return grad;
+      });
+    };
+
     const resize = () => {
       width = container.clientWidth;
       height = container.clientHeight;
@@ -45,6 +58,7 @@ export default function AmbientParticles({
       canvas.style.height = height + 'px';
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(dpr, dpr);
+      buildGlowGradients();
     };
     resize();
 
@@ -85,11 +99,7 @@ export default function AmbientParticles({
     const draw = () => {
       ctx.clearRect(0, 0, width, height);
 
-      for (const g of glows) {
-        const r = width * (g.radiusFrac ?? 0.3);
-        const grad = ctx.createRadialGradient(width * g.x, height * g.y, 0, width * g.x, height * g.y, r);
-        grad.addColorStop(0, `hsla(${g.hue}, 80%, 55%, ${g.alpha ?? 0.1})`);
-        grad.addColorStop(1, 'rgba(0,0,0,0)');
+      for (const grad of glowGradients) {
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, width, height);
       }
