@@ -9,6 +9,8 @@ export default function GetInTouchPage() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [sent, setSent] = useState(false);
+  const [mailtoUrl, setMailtoUrl] = useState('');
+  const [gmailUrl, setGmailUrl] = useState('');
   const [hoveredSide, setHoveredSide] = useState<'left' | 'right' | null>(null);
   const tapTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -29,11 +31,15 @@ export default function GetInTouchPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const subject = encodeURIComponent(`New project inquiry from ${name || 'website visitor'}`);
-    const body = encodeURIComponent(
-      `${message}\n\n---\nName: ${name}\nEmail: ${email}`
+    const rawSubject = `New project inquiry from ${name || 'website visitor'}`;
+    const rawBody = `${message}\n\n---\nName: ${name}\nEmail: ${email}`;
+
+    setMailtoUrl(
+      `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(rawSubject)}&body=${encodeURIComponent(rawBody)}`
     );
-    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+    setGmailUrl(
+      `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(CONTACT_EMAIL)}&su=${encodeURIComponent(rawSubject)}&body=${encodeURIComponent(rawBody)}`
+    );
     setSent(true);
   };
 
@@ -119,18 +125,42 @@ export default function GetInTouchPage() {
               placeholder="Tell me a bit about your business and what you're hoping to fix or build."
             />
           </div>
-          <button
-            type="submit"
-            data-cursor="hover"
-            className="group inline-flex items-center gap-2 rounded-full bg-teal/10 border border-teal/30 px-6 py-3 text-sm font-medium text-teal hover:bg-teal hover:text-black transition-all"
-          >
-            Send it over
-            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-          </button>
+          {!sent && (
+            <button
+              type="submit"
+              data-cursor="hover"
+              className="group inline-flex items-center gap-2 rounded-full bg-teal/10 border border-teal/30 px-6 py-3 text-sm font-medium text-teal hover:bg-teal hover:text-black transition-all"
+            >
+              Send it over
+              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            </button>
+          )}
           {sent && (
-            <p className="text-sm text-white/40 font-light">
-              Opening your email app with everything filled in — just hit send.
-            </p>
+            <div className="space-y-3">
+              <p className="text-sm text-white/40 font-light">
+                Everything's filled in — pick where you want to send it from.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href={mailtoUrl}
+                  data-cursor="hover"
+                  className="group inline-flex items-center gap-2 rounded-full bg-teal/10 border border-teal/30 px-5 py-2.5 text-sm font-medium text-teal hover:bg-teal hover:text-black transition-all"
+                >
+                  Open in Mail App
+                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                </a>
+                <a
+                  href={gmailUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-cursor="hover"
+                  className="group inline-flex items-center gap-2 rounded-full bg-white/[0.03] border border-white/10 px-5 py-2.5 text-sm font-medium text-white/70 hover:text-white hover:border-white/30 transition-all"
+                >
+                  Open in Gmail
+                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                </a>
+              </div>
+            </div>
           )}
         </form>
 
