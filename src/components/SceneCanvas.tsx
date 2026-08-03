@@ -127,7 +127,17 @@ export default function SceneCanvas() {
       // since the background bitmap is fully opaque edge-to-edge.
       ctx.drawImage(bgCanvas, 0, 0, w(), h());
 
-      // Dust particles
+      // Dust particles — batched by (hue, alpha-bucket) into a few Path2D
+      // fills instead of one beginPath/arc/fill *per particle*. That was
+      // 120 individual context-level draw calls every frame; Firefox's
+      // accelerated canvas ships each one to the GPU process as a
+      // message, and that volume of tiny messages every 16ms was
+      // flooding the event queue — which is what was showing up as a
+      // burst of PutEvent markers and stalling cursor/input handling.
+      // Path2D.arc() below builds geometry in JS only; the actual paint
+      // command is just the one ctx.fill(path) per group.
+      const dustGroups = new Map<string, Path2D>();
+      const dustStyle = new Map<string, { hue: number; alpha: number }>();
       for (const p of dust) {
         p.x += p.vx;
         p.y += p.vy;
@@ -135,15 +145,32 @@ export default function SceneCanvas() {
         if (p.x < -5) { p.x = w() + 5; }
         if (p.x > w() + 5) { p.x = -5; }
 
-        ctx.globalAlpha = p.alpha;
-        ctx.fillStyle = `hsl(${p.hue}, 70%, 65%)`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
+        const alphaBucket = Math.round(p.alpha * 10) / 10;
+        const key = `${p.hue}_${alphaBucket}`;
+        let path = dustGroups.get(key);
+        if (!path) {
+          path = new Path2D();
+          dustGroups.set(key, path);
+          dustStyle.set(key, { hue: p.hue, alpha: alphaBucket });
+        }
+        path.moveTo(p.x + p.size, p.y);
+        path.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      }
+      for (const [key, path] of dustGroups) {
+        const { hue, alpha } = dustStyle.get(key)!;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = `hsl(${hue}, 70%, 65%)`;
+        ctx.fill(path);
       }
       ctx.globalAlpha = 1;
 
-      // Splash burst particles
+      // Splash burst particles — same batching approach. Alpha changes
+      // every frame here (it's tied to particle life/fade), so the
+      // grouping is rebuilt each frame, but that's cheap JS Map work —
+      // what matters is still collapsing ~125 individual fillRect calls
+      // down to a handful of ctx.fill(path) calls.
+      const splashGroups = new Map<string, Path2D>();
+      const splashStyle = new Map<string, { hue: number; sat: number; alpha: number }>();
       for (const splash of splashes) {
         for (const p of splash.particles) {
           p.life++;
@@ -162,10 +189,24 @@ export default function SceneCanvas() {
 
           // Pixel-style square dots (matches the image aesthetic)
           const s = p.size * (1 - t * 0.4);
-          ctx.globalAlpha = alpha;
-          ctx.fillStyle = `hsl(${p.hue}, ${p.saturation}%, 62%)`;
-          ctx.fillRect(x - s / 2, y - s / 2, s, s);
+
+          const alphaBucket = Math.round(alpha * 10) / 10;
+          const satBucket = Math.round(p.saturation / 5) * 5;
+          const key = `${p.hue}_${satBucket}_${alphaBucket}`;
+          let path = splashGroups.get(key);
+          if (!path) {
+            path = new Path2D();
+            splashGroups.set(key, path);
+            splashStyle.set(key, { hue: p.hue, sat: satBucket, alpha: alphaBucket });
+          }
+          path.rect(x - s / 2, y - s / 2, s, s);
         }
+      }
+      for (const [key, path] of splashGroups) {
+        const { hue, sat, alpha } = splashStyle.get(key)!;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = `hsl(${hue}, ${sat}%, 62%)`;
+        ctx.fill(path);
       }
       ctx.globalAlpha = 1;
 

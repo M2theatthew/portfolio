@@ -114,6 +114,11 @@ export default function AmbientParticles({
       // but this is one blit instead of one fillRect per glow.
       ctx.drawImage(bgCanvas, 0, 0, width, height);
 
+      // Same batching fix as SceneCanvas — group by (hue, alpha-bucket)
+      // into Path2D fills instead of one context-level draw call per
+      // particle.
+      const dustGroups = new Map<string, Path2D>();
+      const dustStyle = new Map<string, { hue: number; alpha: number }>();
       for (const p of dust) {
         p.x += p.vx;
         p.y += p.vy;
@@ -124,14 +129,27 @@ export default function AmbientParticles({
         if (p.x < -5) p.x = width + 5;
         if (p.x > width + 5) p.x = -5;
 
-        ctx.globalAlpha = p.alpha;
-        ctx.fillStyle = `hsl(${p.hue}, 75%, 65%)`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
+        const alphaBucket = Math.round(p.alpha * 10) / 10;
+        const key = `${p.hue}_${alphaBucket}`;
+        let path = dustGroups.get(key);
+        if (!path) {
+          path = new Path2D();
+          dustGroups.set(key, path);
+          dustStyle.set(key, { hue: p.hue, alpha: alphaBucket });
+        }
+        path.moveTo(p.x + p.size, p.y);
+        path.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      }
+      for (const [key, path] of dustGroups) {
+        const { hue, alpha } = dustStyle.get(key)!;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = `hsl(${hue}, 75%, 65%)`;
+        ctx.fill(path);
       }
       ctx.globalAlpha = 1;
 
+      const burstGroups = new Map<string, Path2D>();
+      const burstStyle = new Map<string, { hue: number; sat: number; alpha: number }>();
       for (const burst of bursts) {
         for (const p of burst.particles) {
           p.life++;
@@ -149,10 +167,23 @@ export default function AmbientParticles({
           const alpha = (1 - t) * (t < 0.1 ? t * 10 : 1) * 0.85;
 
           const s = p.size * (1 - t * 0.4);
-          ctx.globalAlpha = alpha;
-          ctx.fillStyle = `hsl(${p.hue}, ${p.saturation}%, 62%)`;
-          ctx.fillRect(x - s / 2, y - s / 2, s, s);
+          const alphaBucket = Math.round(alpha * 10) / 10;
+          const satBucket = Math.round(p.saturation / 5) * 5;
+          const key = `${p.hue}_${satBucket}_${alphaBucket}`;
+          let path = burstGroups.get(key);
+          if (!path) {
+            path = new Path2D();
+            burstGroups.set(key, path);
+            burstStyle.set(key, { hue: p.hue, sat: satBucket, alpha: alphaBucket });
+          }
+          path.rect(x - s / 2, y - s / 2, s, s);
         }
+      }
+      for (const [key, path] of burstGroups) {
+        const { hue, sat, alpha } = burstStyle.get(key)!;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = `hsl(${hue}, ${sat}%, 62%)`;
+        ctx.fill(path);
       }
       ctx.globalAlpha = 1;
     };
