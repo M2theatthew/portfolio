@@ -161,7 +161,7 @@ export default function Contact() {
             </span>
           </div>
           <div className="font-mono text-[10px] tracking-wider uppercase text-white/25">
-            © {new Date().getFullYear()} Upstate Technology Solutions — Honea Path, SC
+            © {new Date().getFullYear()} Upstate Technology Solutions · Honea Path, SC
           </div>
           <div className="font-mono text-[10px] tracking-wider uppercase text-white/25">
             Real Code. No Page Builders.

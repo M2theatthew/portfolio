@@ -8,7 +8,7 @@ export const services: Service[] = [
   {
     title: 'Websites',
     desc: "A site that actually represents your business, hand-built and easy to keep up with. Still the most common place to start.",
-    detail: 'Custom-coded HTML, CSS, and JavaScript — fast to load, easy to hand off, and built to be edited without a page-builder subscription.',
+    detail: 'Custom-coded HTML, CSS, and JavaScript. Fast to load, easy to hand off, and built to be edited without a page-builder subscription.',
   },
   {
     title: 'Business Automation',
@@ -18,7 +18,7 @@ export const services: Service[] = [
   {
     title: 'Internal Tools & Web Apps',
     desc: "Small custom tools built for how your business actually runs, when a spreadsheet or a sticky note has hit its limit.",
-    detail: 'Purpose-built dashboards and small apps — scheduling, inventory, tracking — shaped around your actual workflow, not a generic template.',
+    detail: 'Purpose-built dashboards and small apps (scheduling, inventory, tracking) shaped around your actual workflow, not a generic template.',
   },
   {
     title: 'Process Improvement & Consulting',

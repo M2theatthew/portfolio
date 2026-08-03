@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Movie Database Browser: Web Concept Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --teal:#49c5b6; --coral:#ff3d6e; --ink:#0a0a12; --ink2:#111119; --muted:#8b8b98; --text:#f2f2f5; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: radial-gradient(circle at 80% 100%, #201316 0%, var(--ink) 55%);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: .5rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+    border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03);
+    padding: .5rem .9rem; border-radius: 999px; margin-bottom: 1.75rem;
+  }
+  .badge b { color: var(--coral); font-weight: 500; }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 600; letter-spacing: -0.01em; }
+  p.sub { color: var(--muted); font-weight: 300; margin-top: .5rem; max-width: 520px; text-align: center; line-height: 1.5; }
+
+  .app {
+    margin-top: 2rem;
+    width: min(720px, 100%);
+    background: #131318;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .titlebar {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .65rem 1rem;
+    background: #1b1b22;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .titlebar span:last-child { margin-left: .5rem; font-family:'JetBrains Mono',monospace; font-size: 11px; color: var(--muted); }
+
+  .toolbar { display: flex; gap: .6rem; padding: .9rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .toolbar input, .toolbar select {
+    background: var(--ink2);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: .55rem .7rem;
+  }
+  .toolbar input { flex: 1; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    text-align: left;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: .6rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  tbody td { padding: .6rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  tbody tr:hover { background: rgba(73,197,182,0.06); }
+  .genre-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: .15rem .5rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--muted);
+  }
+  .rating { color: #f0c94e; font-family: 'JetBrains Mono', monospace; }
+  .count { padding: .6rem 1rem; font-family:'JetBrains Mono',monospace; font-size: 11px; color: var(--muted); border-top: 1px solid rgba(255,255,255,0.06); }
+</style>
+</head>
+<body>
+  <div class="badge">🎬 <b>Web recreation</b> (original built with Python + Tkinter + SQLite)</div>
+  <h1>Movie Database Browser</h1>
+  <p class="sub">Browse and query a small movie database: search by title, filter by genre, sort by rating or year. Rebuilt for the browser to demo the same querying logic the Tkinter desktop app runs against SQLite.</p>
+
+  <div class="app">
+    <div class="titlebar">
+      <div class="dot" style="background:#ff5f57"></div>
+      <div class="dot" style="background:#febc2e"></div>
+      <div class="dot" style="background:#28c840"></div>
+      <span>movie_browser.py, SQLite: movies.db</span>
+    </div>
+    <div class="toolbar">
+      <input id="search" type="text" placeholder="Search title...">
+      <select id="genre"><option value="">All genres</option></select>
+      <select id="sort">
+        <option value="title">Sort: Title</option>
+        <option value="year">Sort: Year</option>
+        <option value="rating">Sort: Rating</option>
+      </select>
+    </div>
+    <table>
+      <thead><tr><th>Title</th><th>Year</th><th>Genre</th><th>Rating</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="count" id="count"></div>
+  </div>
+
+  <script>
+    const movies = [
+      { title: 'Nightfall Protocol', year: 2019, genre: 'Thriller', rating: 7.8 },
+      { title: 'The Last Orchard', year: 2015, genre: 'Drama', rating: 8.2 },
+      { title: 'Skyward Static', year: 2021, genre: 'Sci-Fi', rating: 7.1 },
+      { title: 'Copperline', year: 2011, genre: 'Drama', rating: 6.9 },
+      { title: 'Wildfire Season', year: 2023, genre: 'Action', rating: 7.4 },
+      { title: 'Blue Hour Diner', year: 2017, genre: 'Comedy', rating: 6.5 },
+      { title: 'Ashgrove', year: 2009, genre: 'Horror', rating: 5.9 },
+      { title: 'The Cartographer', year: 2020, genre: 'Adventure', rating: 8.0 },
+      { title: 'Hollow Signal', year: 2022, genre: 'Sci-Fi', rating: 7.6 },
+      { title: 'Paper Tigers', year: 2013, genre: 'Comedy', rating: 6.2 },
+      { title: 'Ember & Ash', year: 2018, genre: 'Romance', rating: 7.0 },
+      { title: 'Northline', year: 2016, genre: 'Thriller', rating: 7.3 },
+    ];
+
+    const genreSel = document.getElementById('genre');
+    [...new Set(movies.map(m => m.genre))].sort().forEach(g => {
+      const opt = document.createElement('option');
+      opt.value = g; opt.textContent = g;
+      genreSel.appendChild(opt);
+    });
+
+    function render() {
+      const q = document.getElementById('search').value.toLowerCase();
+      const genre = genreSel.value;
+      const sort = document.getElementById('sort').value;
+
+      let list = movies.filter(m =>
+        m.title.toLowerCase().includes(q) && (!genre || m.genre === genre)
+      );
+      list.sort((a, b) => {
+        if (sort === 'title') return a.title.localeCompare(b.title);
+        if (sort === 'year') return b.year - a.year;
+        return b.rating - a.rating;
+      });
+
+      const rows = document.getElementById('rows');
+      rows.innerHTML = list.map(m => `
+        <tr>
+          <td>${m.title}</td>
+          <td>${m.year}</td>
+          <td><span class="genre-tag">${m.genre}</span></td>
+          <td class="rating">★ ${m.rating.toFixed(1)}</td>
+        </tr>
+      `).join('');
+      document.getElementById('count').textContent = `${list.length} of ${movies.length} movies`;
+    }
+
+    document.getElementById('search').addEventListener('input', render);
+    genreSel.addEventListener('change', render);
+    document.getElementById('sort').addEventListener('change', render);
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directory Checksum Tool: Web Concept Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --teal:#49c5b6; --coral:#ff3d6e; --ink:#0a0a12; --ink2:#111119; --muted:#8b8b98; --text:#f2f2f5; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: radial-gradient(circle at 20% 100%, #1a1420 0%, var(--ink) 55%);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: .5rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+    border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03);
+    padding: .5rem .9rem; border-radius: 999px; margin-bottom: 1.75rem;
+  }
+  .badge b { color: var(--teal); font-weight: 500; }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 600; letter-spacing: -0.01em; }
+  p.sub { color: var(--muted); font-weight: 300; margin-top: .5rem; max-width: 520px; text-align: center; line-height: 1.5; }
+
+  .panel {
+    margin-top: 2rem;
+    width: min(680px, 100%);
+    background: #0c0c11;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .titlebar {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .7rem 1rem;
+    background: #17171f;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .titlebar span:last-child {
+    margin-left: .5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .term {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.65;
+    padding: 1.25rem;
+    min-height: 260px;
+    max-height: 360px;
+    overflow-y: auto;
+    color: #d5f5ee;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .term .prompt { color: var(--teal); }
+  .term .path { color: #f0c94e; }
+  .term .hash { color: #9dd8ff; }
+  .term .err { color: var(--coral); }
+
+  .inputRow {
+    display: flex; gap: .5rem;
+    padding: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    background: #101017;
+  }
+  textarea {
+    flex: 1;
+    resize: vertical;
+    min-height: 60px;
+    background: var(--ink2);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: .6rem;
+  }
+  .filesArea { display: flex; flex-direction: column; gap: .5rem; padding: 0 1rem 1rem; }
+  .fileRow { display: flex; gap: .5rem; }
+  .fileRow input[type="text"] {
+    width: 140px;
+    background: var(--ink2);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: .5rem;
+  }
+  button {
+    padding: .6rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--teal);
+    background: rgba(73,197,182,0.15);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  button:hover { background: rgba(73,197,182,0.28); }
+  button.add { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.04); }
+</style>
+</head>
+<body>
+  <div class="badge">🗂️ <b>Web recreation</b> (original was a Java command-line utility)</div>
+  <h1>Directory Checksum Tool</h1>
+  <p class="sub">Scans files and generates a checksum for each one. This browser version works the same way in spirit: type or paste content into a few "files" below and it will run real SHA-256 hashes on the actual text, right in your browser.</p>
+
+  <div class="panel">
+    <div class="titlebar">
+      <div class="dot" style="background:#ff5f57"></div>
+      <div class="dot" style="background:#febc2e"></div>
+      <div class="dot" style="background:#28c840"></div>
+      <span>checksum-tool: bash</span>
+    </div>
+    <div class="term" id="term">$ <span class="prompt">checksum-tool</span> <span class="path">./sample-dir</span>
+Ready. Add file contents below and press "Run scan".
+</div>
+    <div class="filesArea" id="filesArea"></div>
+    <div class="inputRow">
+      <button class="add" id="addFile">+ Add file</button>
+      <button id="runBtn">Run scan</button>
+    </div>
+  </div>
+
+  <script>
+    const filesArea = document.getElementById('filesArea');
+    const term = document.getElementById('term');
+
+    function addFileRow(name = 'notes.txt', content = 'Quarterly report draft.') {
+      const row = document.createElement('div');
+      row.className = 'fileRow';
+      row.innerHTML = `
+        <input type="text" class="fname" value="${name}">
+        <textarea class="fcontent" rows="2">${content}</textarea>
+      `;
+      filesArea.appendChild(row);
+    }
+    addFileRow('notes.txt', 'Quarterly report draft.');
+    addFileRow('config.yml', 'env: production\nport: 8080');
+
+    document.getElementById('addFile').addEventListener('click', () => addFileRow('newfile.txt', ''));
+
+    async function sha256(text) {
+      const enc = new TextEncoder().encode(text);
+      const buf = await crypto.subtle.digest('SHA-256', enc);
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    document.getElementById('runBtn').addEventListener('click', async () => {
+      const rows = filesArea.querySelectorAll('.fileRow');
+      term.innerHTML = '$ <span class="prompt">checksum-tool</span> <span class="path">./sample-dir</span>\nScanning ' + rows.length + ' file(s)...\n\n';
+      for (const row of rows) {
+        const name = row.querySelector('.fname').value || 'unnamed';
+        const content = row.querySelector('.fcontent').value;
+        if (!content.trim()) {
+          term.innerHTML += `<span class="path">${name}</span>  <span class="err">skipped (empty)</span>\n`;
+          continue;
+        }
+        const hash = await sha256(content);
+        term.innerHTML += `<span class="path">${name.padEnd(16)}</span> <span class="hash">${hash}</span>\n`;
+      }
+      term.innerHTML += '\nDone.';
+      term.scrollTop = term.scrollHeight;
+    });
+  </script>
+</body>
+</html>

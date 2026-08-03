@@ -75,7 +75,7 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-coral animate-pulse" />
             <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/30">
-              8 Projects · Scroll to explore
+              9 Projects · Scroll to explore
             </span>
           </div>
           <div className="flex items-center gap-6 font-mono text-[10px] tracking-[0.2em] uppercase text-white/25">
@@ -94,7 +94,7 @@ export default function HomePage() {
             / Index
           </div>
           <div className="font-mono text-[10px] tracking-wider text-white/15 tabular-nums">
-            01 — 08
+            01-09
           </div>
         </div>
       </div>

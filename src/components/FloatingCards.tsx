@@ -52,10 +52,10 @@ const cards: CardData[] = [
   },
   // Bottom center, below the tagline — clear of the other left-side cards
   {
-    workId: '03',
-    image: '/images/work/lou-perrys.jpg',
-    title: "LOU & PERRY'S",
-    meta: 'RESTAURANT',
+    workId: '08',
+    image: '/images/work/wifi-monitor.jpg',
+    title: 'WIFI MONITOR',
+    meta: 'TOOL · DESKTOP + WEB',
     width: 200,
     height: 126,
     baseX: 42,
@@ -67,10 +67,10 @@ const cards: CardData[] = [
   },
   // Bottom left-of-center
   {
-    workId: '05',
-    image: '/images/work/green-dragon.jpg',
-    title: 'THE GREEN DRAGON',
-    meta: 'RETAIL',
+    workId: '09',
+    image: '/images/work/local-crm.jpg',
+    title: 'LIGHTWEIGHT LOCAL CRM',
+    meta: 'TOOL · BUSINESS SUITE',
     width: 195,
     height: 122,
     baseX: 8,

@@ -56,16 +56,23 @@ export default function GetInTouchPage() {
             onMouseLeave={() => setHoveredSide(null)}
             onClick={() => handleTap('left')}
             data-cursor="hover"
-            className="text-4xl sm:text-5xl md:text-7xl font-light tracking-tight text-white/30 cursor-pointer active:scale-95 transition-all duration-300"
+            className="text-4xl sm:text-5xl md:text-7xl font-light tracking-tight text-white/30 cursor-pointer active:scale-95"
+            style={{
+              transform: hoveredSide === 'left' ? 'scale(1.06)' : 'scale(1)',
+              color: hoveredSide === 'left' ? '#ffffff' : undefined,
+              textShadow: hoveredSide === 'left' ? '0 0 20px rgba(255,255,255,0.85), 0 0 44px rgba(255,255,255,0.4)' : '0 0 0 rgba(255,255,255,0)',
+              transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), color 0.5s ease, text-shadow 0.5s ease',
+            }}
           >
-            A CONVERSATION
+            GOT A QUESTION
           </span>
           <ArrowRight
             className="w-8 h-8 md:w-12 md:h-12 flex-shrink-0"
             style={{
               transform: hoveredSide === 'left' ? 'rotate(180deg) scale(1.15)' : hoveredSide === 'right' ? 'rotate(0deg) scale(1.15)' : 'rotate(0deg) scale(1)',
-              transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), color 0.5s ease',
-              color: hoveredSide ? '#49c5b6' : 'rgba(255,255,255,0.2)',
+              transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), color 0.5s ease, filter 0.5s ease',
+              color: hoveredSide === 'left' ? '#ffffff' : hoveredSide === 'right' ? '#49c5b6' : 'rgba(255,255,255,0.2)',
+              filter: hoveredSide === 'left' ? 'drop-shadow(0 0 12px rgba(255,255,255,0.85))' : hoveredSide === 'right' ? 'drop-shadow(0 0 12px rgba(73,197,182,0.7))' : 'none',
             }}
           />
           <span
@@ -73,14 +80,19 @@ export default function GetInTouchPage() {
             onMouseLeave={() => setHoveredSide(null)}
             onClick={() => handleTap('right')}
             data-cursor="hover"
-            className="text-4xl sm:text-5xl md:text-7xl font-light tracking-tight bg-gradient-to-r from-teal to-coral bg-clip-text text-transparent cursor-pointer active:scale-95 transition-all duration-300"
+            className="text-4xl sm:text-5xl md:text-7xl font-light tracking-tight bg-gradient-to-r from-teal to-coral bg-clip-text text-transparent cursor-pointer active:scale-95"
+            style={{
+              transform: hoveredSide === 'right' ? 'scale(1.06)' : 'scale(1)',
+              filter: hoveredSide === 'right' ? 'drop-shadow(0 0 16px rgba(73,197,182,0.5)) drop-shadow(0 0 16px rgba(255,61,110,0.5))' : 'drop-shadow(0 0 0 rgba(0,0,0,0))',
+              transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease',
+            }}
           >
-            YOUR IDEA
+            JUST ASK
           </span>
         </div>
         <p className="text-white/40 font-light max-w-lg mx-auto">
-          No pressure to buy anything. Tell me what's going on and we'll
-          figure out together whether it's worth doing anything at all.
+          If you're wondering about it, someone else probably is too. Tell me what's going on and
+          we'll figure out together whether it's worth doing anything at all.
         </p>
       </div>
 

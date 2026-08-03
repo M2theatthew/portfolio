@@ -48,7 +48,7 @@ export default function ReviewsPage() {
             Reviews from recent projects are on their way here.
           </p>
           <p className="text-sm text-white/25 font-light max-w-md mx-auto">
-            In the meantime, take a look at the work itself — every project
+            In the meantime, take a look at the work itself, every project
             listed there is a live or delivered site.
           </p>
         </div>

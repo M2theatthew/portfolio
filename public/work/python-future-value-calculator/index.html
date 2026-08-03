@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Future Value Calculator: Web Concept Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --teal:#49c5b6; --coral:#ff3d6e; --ink:#0a0a12; --ink2:#111119; --muted:#8b8b98; --text:#f2f2f5; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: radial-gradient(circle at 20% 0%, #12211f 0%, var(--ink) 55%);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: .5rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+    border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03);
+    padding: .5rem .9rem; border-radius: 999px; margin-bottom: 1.75rem;
+  }
+  .badge b { color: var(--teal); font-weight: 500; }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 600; letter-spacing: -0.01em; }
+  p.sub { color: var(--muted); font-weight: 300; margin-top: .5rem; max-width: 480px; text-align: center; line-height: 1.5; }
+
+  .panel {
+    margin-top: 2rem;
+    width: min(520px, 100%);
+    background: linear-gradient(160deg, rgba(73,197,182,0.08), var(--ink2) 55%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 1.75rem;
+  }
+  .field { margin-bottom: 1.1rem; }
+  label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .4rem;
+  }
+  .field-row { display: flex; align-items: center; gap: .5rem; }
+  input[type="range"] { flex: 1; accent-color: var(--teal); }
+  input[type="number"] {
+    width: 90px;
+    background: var(--ink2);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    padding: .5rem .6rem;
+    text-align: right;
+  }
+  .result {
+    margin-top: 1.5rem;
+    padding: 1.25rem;
+    border-radius: 14px;
+    background: rgba(73,197,182,0.1);
+    border: 1px solid rgba(73,197,182,0.3);
+    text-align: center;
+  }
+  .result .amount {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--teal);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .result .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: .3rem; }
+  .breakdown { display: flex; justify-content: space-between; margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+  .breakdown b { color: var(--text); }
+</style>
+</head>
+<body>
+  <div class="badge">📈 <b>Web recreation</b> (original built with Python + Flask)</div>
+  <h1>Future Value Calculator</h1>
+  <p class="sub">Calculates the future value of an investment given a starting amount, monthly contribution, interest rate, and time horizon. The Flask app ran this same compound-interest math server-side; here it runs client-side in JS.</p>
+
+  <div class="panel">
+    <div class="field">
+      <label>Starting amount ($)</label>
+      <div class="field-row">
+        <input type="range" id="principalRange" min="0" max="50000" step="500" value="5000">
+        <input type="number" id="principal" value="5000">
+      </div>
+    </div>
+    <div class="field">
+      <label>Monthly contribution ($)</label>
+      <div class="field-row">
+        <input type="range" id="contribRange" min="0" max="2000" step="25" value="200">
+        <input type="number" id="contrib" value="200">
+      </div>
+    </div>
+    <div class="field">
+      <label>Annual interest rate (%)</label>
+      <div class="field-row">
+        <input type="range" id="rateRange" min="0" max="15" step="0.1" value="7">
+        <input type="number" id="rate" value="7" step="0.1">
+      </div>
+    </div>
+    <div class="field">
+      <label>Years</label>
+      <div class="field-row">
+        <input type="range" id="yearsRange" min="1" max="40" step="1" value="10">
+        <input type="number" id="years" value="10">
+      </div>
+    </div>
+
+    <div class="result">
+      <div class="amount" id="fv">$0</div>
+      <div class="label">Projected future value</div>
+      <div class="breakdown">
+        <span>Contributed: <b id="contributed">$0</b></span>
+        <span>Growth: <b id="growth">$0</b></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ids = ['principal', 'contrib', 'rate', 'years'];
+    ids.forEach(id => {
+      const num = document.getElementById(id);
+      const range = document.getElementById(id + 'Range');
+      num.addEventListener('input', () => { range.value = num.value; calc(); });
+      range.addEventListener('input', () => { num.value = range.value; calc(); });
+    });
+
+    function fmt(n) {
+      return '$' + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+    }
+
+    function calc() {
+      const P = parseFloat(document.getElementById('principal').value) || 0;
+      const PMT = parseFloat(document.getElementById('contrib').value) || 0;
+      const annualRate = parseFloat(document.getElementById('rate').value) || 0;
+      const years = parseInt(document.getElementById('years').value) || 0;
+
+      const r = annualRate / 100 / 12;
+      const n = years * 12;
+
+      let futureValuePrincipal = P * Math.pow(1 + r, n);
+      let futureValueContrib;
+      if (r === 0) {
+        futureValueContrib = PMT * n;
+      } else {
+        futureValueContrib = PMT * ((Math.pow(1 + r, n) - 1) / r);
+      }
+      const fv = futureValuePrincipal + futureValueContrib;
+      const contributed = P + PMT * n;
+      const growth = fv - contributed;
+
+      document.getElementById('fv').textContent = fmt(fv);
+      document.getElementById('contributed').textContent = fmt(contributed);
+      document.getElementById('growth').textContent = fmt(growth);
+    }
+    calc();
+  </script>
+</body>
+</html>

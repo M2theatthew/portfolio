@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sudoku Checker: Web Concept Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --teal:#49c5b6; --coral:#ff3d6e; --ink:#0a0a12; --ink2:#111119; --muted:#8b8b98; --text:#f2f2f5; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: radial-gradient(circle at 80% 0%, #1a1a26 0%, var(--ink) 55%);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: .5rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+    border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03);
+    padding: .5rem .9rem; border-radius: 999px; margin-bottom: 1.75rem;
+  }
+  .badge b { color: var(--teal); font-weight: 500; }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 600; letter-spacing: -0.01em; }
+  p.sub { color: var(--muted); font-weight: 300; margin-top: .5rem; max-width: 480px; text-align: center; line-height: 1.5; }
+
+  .panel {
+    margin-top: 2rem;
+    background: linear-gradient(160deg, rgba(73,197,182,0.08), var(--ink2) 55%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 1.75rem;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(9, minmax(28px, 38px));
+    grid-template-rows: repeat(9, minmax(28px, 38px));
+    width: max-content;
+    margin: 0 auto;
+    gap: 2px;
+    background: rgba(255,255,255,0.15);
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .cell {
+    background: var(--ink2);
+    text-align: center;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    border: none;
+    outline: none;
+  }
+  .cell:focus { background: rgba(73,197,182,0.15); }
+  .cell.bad { background: rgba(255,61,110,0.22); color: var(--coral); }
+  /* thicker box borders every 3 cells */
+  .cell[data-col="2"], .cell[data-col="5"] { border-right: 2px solid rgba(255,255,255,0.3); }
+  .cell[data-row="2"], .cell[data-row="5"] { border-bottom: 2px solid rgba(255,255,255,0.3); }
+
+  .actions { display: flex; gap: .6rem; margin-top: 1.25rem; }
+  button {
+    flex: 1;
+    padding: .7rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  button.primary { background: rgba(73,197,182,0.18); border-color: var(--teal); }
+  button:hover { background: rgba(255,255,255,0.09); }
+  button.primary:hover { background: rgba(73,197,182,0.28); }
+
+  .result {
+    margin-top: 1rem;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: .03em;
+    min-height: 1.4em;
+  }
+  .result.ok { color: var(--teal); }
+  .result.err { color: var(--coral); }
+</style>
+</head>
+<body>
+  <div class="badge">🧩 <b>Web recreation</b> (original built with Java + JavaFX)</div>
+  <h1>Sudoku Checker</h1>
+  <p class="sub">Validates whether a completed Sudoku board follows the rules: every row, column, and 3×3 box must contain 1 to 9 exactly once. Rebuilt as a browser demo of the JavaFX desktop tool.</p>
+
+  <div class="panel">
+    <div class="grid" id="grid"></div>
+    <div class="actions">
+      <button id="sampleValid">Load valid sample</button>
+      <button id="sampleInvalid">Load broken sample</button>
+      <button class="primary" id="checkBtn">Check board</button>
+    </div>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    const grid = document.getElementById('grid');
+    const cells = [];
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const inp = document.createElement('input');
+        inp.className = 'cell';
+        inp.maxLength = 1;
+        inp.dataset.row = r; inp.dataset.col = c;
+        inp.addEventListener('input', () => {
+          inp.value = inp.value.replace(/[^1-9]/g, '');
+        });
+        grid.appendChild(inp);
+        cells.push(inp);
+      }
+    }
+
+    const validSample = [
+      '534678912','672195348','198342567',
+      '859761423','426853791','713924856',
+      '961537284','287419635','345286179'
+    ];
+    const invalidSample = [
+      '534678912','672195348','198342567',
+      '859761423','426853791','713924856',
+      '961537284','287419635','345286177' // last row broken (two 7s)
+    ];
+
+    function loadSample(rows) {
+      cells.forEach(c => { c.classList.remove('bad'); });
+      document.getElementById('result').textContent = '';
+      document.getElementById('result').className = 'result';
+      rows.forEach((row, r) => {
+        row.split('').forEach((val, c) => {
+          cells[r * 9 + c].value = val;
+        });
+      });
+    }
+    document.getElementById('sampleValid').addEventListener('click', () => loadSample(validSample));
+    document.getElementById('sampleInvalid').addEventListener('click', () => loadSample(invalidSample));
+
+    function checkGroup(vals) {
+      const nums = vals.filter(v => v !== '');
+      const set = new Set(nums);
+      return set.size === nums.length;
+    }
+
+    document.getElementById('checkBtn').addEventListener('click', () => {
+      cells.forEach(c => c.classList.remove('bad'));
+      let ok = true;
+      const badCells = new Set();
+
+      // rows
+      for (let r = 0; r < 9; r++) {
+        const rowCells = cells.filter(c => +c.dataset.row === r);
+        if (!checkGroup(rowCells.map(c => c.value))) { ok = false; rowCells.forEach(c => badCells.add(c)); }
+      }
+      // cols
+      for (let c = 0; c < 9; c++) {
+        const colCells = cells.filter(cc => +cc.dataset.col === c);
+        if (!checkGroup(colCells.map(cc => cc.value))) { ok = false; colCells.forEach(cc => badCells.add(cc)); }
+      }
+      // boxes
+      for (let br = 0; br < 3; br++) {
+        for (let bc = 0; bc < 3; bc++) {
+          const boxCells = cells.filter(cc => Math.floor(+cc.dataset.row/3)===br && Math.floor(+cc.dataset.col/3)===bc);
+          if (!checkGroup(boxCells.map(cc => cc.value))) { ok = false; boxCells.forEach(cc => badCells.add(cc)); }
+        }
+      }
+
+      const filled = cells.every(c => c.value !== '');
+      const resEl = document.getElementById('result');
+      if (!filled) {
+        resEl.textContent = 'Board incomplete, fill every cell to check.';
+        resEl.className = 'result';
+        return;
+      }
+      badCells.forEach(c => c.classList.add('bad'));
+      if (ok) {
+        resEl.textContent = '✓ Valid solution, every row, column, and box checks out.';
+        resEl.className = 'result ok';
+      } else {
+        resEl.textContent = `✗ Invalid, ${badCells.size} conflicting cells highlighted.`;
+        resEl.className = 'result err';
+      }
+    });
+
+    loadSample(validSample);
+  </script>
+</body>
+</html>

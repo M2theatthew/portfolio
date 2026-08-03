@@ -11,12 +11,10 @@ interface Project {
 const projects: Project[] = [
   { id: '01', title: "Empower Honea Path", category: 'Nonprofit', detail: '5 pages' },
   { id: '02', title: 'Honea Path First Baptist', category: 'Church', detail: '3 pages' },
-  { id: '03', title: "Lou & Perry's", category: 'Restaurant', detail: 'Live site' },
-  { id: '04', title: 'The Melt Pizzeria', category: 'Restaurant', detail: 'Live site' },
-  { id: '05', title: 'The Green Dragon', category: 'Retail', detail: 'Live site' },
-  { id: '06', title: 'Eoin Reardon', category: 'Craft', detail: 'Live site' },
-  { id: '07', title: 'Chadwicks', category: 'Restaurant', detail: '3 concepts' },
   { id: '08', title: 'WiFi Monitor', category: 'Tool', detail: 'Desktop + Web' },
+  { id: '04', title: 'The Melt Pizzeria', category: 'Restaurant', detail: 'Live site' },
+  { id: '09', title: 'Lightweight Local CRM', category: 'Tool', detail: 'Business Suite' },
+  { id: '06', title: 'Eoin Reardon', category: 'Craft', detail: 'Live site' },
 ];
 
 export default function ProjectList() {

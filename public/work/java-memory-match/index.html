@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Match: Web Concept Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #49c5b6;
+    --teal-dark: #2faa9b;
+    --coral: #ff3d6e;
+    --ink: #0a0a12;
+    --ink2: #111119;
+    --ink3: #181822;
+    --text: #f2f2f5;
+    --muted: #8b8b98;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: radial-gradient(circle at 20% 0%, #12241f 0%, var(--ink) 55%);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.03);
+    padding: .5rem .9rem;
+    border-radius: 999px;
+    margin-bottom: 1.75rem;
+  }
+  .badge b { color: var(--teal); font-weight: 500; }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 600; letter-spacing: -0.01em; }
+  p.sub { color: var(--muted); font-weight: 300; margin-top: .5rem; max-width: 480px; text-align: center; line-height: 1.5; }
+
+  .panel {
+    margin-top: 2rem;
+    background: linear-gradient(160deg, rgba(73,197,182,0.08), var(--ink2) 55%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 1.75rem;
+    width: min(560px, 100%);
+  }
+  .hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 1.25rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .hud b { color: var(--text); font-size: 14px; }
+  .theme-row { display: flex; gap: .5rem; }
+  .theme-btn {
+    width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.15);
+  }
+  .theme-btn.active { border-color: #fff; }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: .65rem;
+  }
+  .card {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    cursor: pointer;
+    position: relative;
+    perspective: 600px;
+  }
+  .card-inner {
+    width: 100%; height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform .4s ease;
+  }
+  .card.flipped .card-inner, .card.matched .card-inner { transform: rotateY(180deg); }
+  .face {
+    position: absolute; inset: 0;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+    backface-visibility: hidden;
+  }
+  .face.back {
+    background: linear-gradient(145deg, var(--ink3), #20202c);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .face.back::after {
+    content: '?';
+    color: rgba(255,255,255,0.15);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+  }
+  .face.front {
+    background: linear-gradient(145deg, rgba(73,197,182,0.18), rgba(73,197,182,0.05));
+    border: 1px solid var(--teal-dark);
+    transform: rotateY(180deg);
+  }
+  .card.matched .face.front {
+    background: linear-gradient(145deg, rgba(255,61,110,0.18), rgba(255,61,110,0.05));
+    border-color: var(--coral);
+  }
+  .win {
+    margin-top: 1.25rem;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--teal);
+    letter-spacing: .04em;
+    min-height: 1.2em;
+  }
+  button.reset {
+    margin-top: 1rem;
+    width: 100%;
+    padding: .75rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  button.reset:hover { background: rgba(255,255,255,0.08); }
+</style>
+</head>
+<body>
+
+  <div class="badge">🎮 <b>Web recreation</b> (original built with Java + JavaFX)</div>
+  <h1>Memory Match</h1>
+  <p class="sub">A tile-matching memory game. This is a browser-based recreation of the JavaFX desktop version so the mechanics can be tried without installing anything, same rules, same custom theming, rebuilt for the web.</p>
+
+  <div class="panel">
+    <div class="hud">
+      <span>Moves: <b id="moves">0</b></span>
+      <div class="theme-row">
+        <div class="theme-btn active" style="background:#49c5b6" data-theme="teal"></div>
+        <div class="theme-btn" style="background:#ff3d6e" data-theme="coral"></div>
+        <div class="theme-btn" style="background:#f0c94e" data-theme="gold"></div>
+        <div class="theme-btn" style="background:#8a6bff" data-theme="violet"></div>
+      </div>
+      <span>Matched: <b id="matched">0</b>/8</span>
+    </div>
+    <div class="board" id="board"></div>
+    <div class="win" id="win"></div>
+    <button class="reset" id="resetBtn">Shuffle &amp; Restart</button>
+  </div>
+
+  <script>
+    const symbolSets = {
+      teal: ['◆','◈','◉','◎','▲','▶','●','◐'],
+      coral: ['♥','✦','✧','☾','✷','❖','✿','✵'],
+      gold: ['★','☀','⚑','⚘','☕','♛','⚙','✎'],
+      violet: ['♦','♣','♠','♤','♢','♧','☘','✪'],
+    };
+    let theme = 'teal';
+    const board = document.getElementById('board');
+    const movesEl = document.getElementById('moves');
+    const matchedEl = document.getElementById('matched');
+    const winEl = document.getElementById('win');
+    let cards = [], flipped = [], moves = 0, matched = 0, lock = false;
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function build() {
+      board.innerHTML = '';
+      const syms = symbolSets[theme];
+      cards = shuffle([...syms, ...syms]);
+      flipped = []; moves = 0; matched = 0; lock = false;
+      movesEl.textContent = '0'; matchedEl.textContent = '0'; winEl.textContent = '';
+      cards.forEach((sym, i) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.sym = sym;
+        card.dataset.index = i;
+        card.innerHTML = `
+          <div class="card-inner">
+            <div class="face back"></div>
+            <div class="face front">${sym}</div>
+          </div>`;
+        card.addEventListener('click', () => flip(card));
+        board.appendChild(card);
+      });
+    }
+
+    function flip(card) {
+      if (lock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+      card.classList.add('flipped');
+      flipped.push(card);
+      if (flipped.length === 2) {
+        moves++; movesEl.textContent = moves;
+        lock = true;
+        const [a, b] = flipped;
+        if (a.dataset.sym === b.dataset.sym) {
+          a.classList.add('matched'); b.classList.add('matched');
+          matched++; matchedEl.textContent = matched;
+          flipped = []; lock = false;
+          if (matched === 8) winEl.textContent = `Solved in ${moves} moves 🎉`;
+        } else {
+          setTimeout(() => {
+            a.classList.remove('flipped'); b.classList.remove('flipped');
+            flipped = []; lock = false;
+          }, 700);
+        }
+      }
+    }
+
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        theme = btn.dataset.theme;
+        build();
+      });
+    });
+    document.getElementById('resetBtn').addEventListener('click', build);
+    build();
+  </script>
+</body>
+</html>

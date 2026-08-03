@@ -88,7 +88,7 @@ export default function About() {
               Plenty of local businesses get by just fine without a new
               website or a new tool. My job isn't to sell you technology;
               it's to give you an honest read on whether it would actually
-              help, and to build only what's worth building.
+              help and to build only what's worth building.
             </p>
           </div>
         </div>
