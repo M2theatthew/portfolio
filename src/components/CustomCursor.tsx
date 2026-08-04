@@ -5,6 +5,18 @@ export default function CustomCursor() {
   const ringRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Fine-pointer-with-hover is the actual signal for "this device has a
+    // mouse cursor to replace" — touch devices, and the rare fine-pointer
+    // touchscreen-with-stylus case, don't. Previously this component
+    // mounted and ran its rAF loop unconditionally everywhere, including
+    // on phones, where the dot/ring were invisible only by accident of
+    // never receiving a mousemove — the loop itself still ran forever for
+    // nothing. Bailing out here means the component does nothing at all
+    // on mobile: no listeners, no rAF, no DOM nodes rendered.
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      return;
+    }
+
     const dot = dotRef.current!;
     const ring = ringRef.current!;
 
@@ -67,8 +79,8 @@ export default function CustomCursor() {
 
   return (
     <>
-      <div ref={dotRef} className="cursor-dot" />
-      <div ref={ringRef} className="cursor-ring" />
+      <div ref={dotRef} className="cursor-dot" style={{ opacity: 0 }} />
+      <div ref={ringRef} className="cursor-ring" style={{ opacity: 0 }} />
     </>
   );
 }

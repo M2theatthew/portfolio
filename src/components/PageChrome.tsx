@@ -10,7 +10,7 @@ export default function PageChrome({ children }: { children: ReactNode }) {
     <div className="relative min-h-screen">
       <SceneCanvas />
       <PillboxNav />
-      <main className="relative z-30 pt-32 pb-24 px-6 md:px-10">
+      <main id="main-content" className="relative z-30 pt-32 pb-24 px-6 md:px-10">
         <div className="max-w-5xl mx-auto">{children}</div>
       </main>
     </div>

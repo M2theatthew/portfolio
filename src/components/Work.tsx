@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ArrowUpRight, Layers, X } from 'lucide-react';
 import AmbientParticles from '@/components/AmbientParticles';
+import { useReveal, reveal } from '@/lib/useReveal';
 
 interface StackItem {
   title: string;
@@ -125,9 +126,9 @@ const projects: Project[] = [
   {
     id: '11',
     title: 'Web Design Projects',
-    category: 'IST-226, a hand-coded personal project site.',
+    category: 'A handful of hand-coded personal project sites.',
     year: '',
-    tags: ['Student', 'HTML/CSS'],
+    tags: ['HTML/CSS'],
     link: '',
     span: 'normal',
     accent: '#49c5b6',
@@ -137,6 +138,24 @@ const projects: Project[] = [
         title: 'Design Concepts',
         description: 'A personal profile page built from scratch, custom stylesheet, portrait photography, and embedded video, no frameworks.',
         tags: ['HTML', 'CSS'],
+      },
+    ],
+  },
+  {
+    id: '13',
+    title: 'C / C# Projects',
+    category: 'A few systems and language-fundamentals projects, in progress.',
+    year: '',
+    tags: ['Student', 'C/C#'],
+    link: '',
+    span: 'normal',
+    accent: '#ffb454',
+    image: '/images/work/student-c.svg',
+    stackItems: [
+      {
+        title: 'Coming soon',
+        description: "These are still in progress — check back once they're finished.",
+        tags: ['Planned'],
       },
     ],
   },
@@ -206,32 +225,15 @@ function ProjectCard({
   index: number;
   onOpenStack: (id: string) => void;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+  const { ref, visible } = useReveal<HTMLDivElement>(0.12, '0px 0px -8% 0px');
   const isStack = Boolean(project.stackItems && project.stackItems.length);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          obs.unobserve(entry.target);
-        }
-      },
-      { threshold: 0.12, rootMargin: '0px 0px -8% 0px' }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
 
   const spanClass =
     project.span === 'wide'
       ? 'md:col-span-2 aspect-[16/9]'
       : project.span === 'tall'
         ? 'md:row-span-2 aspect-[3/4]'
-        : 'aspect-[4/3]';
+        : 'aspect-[4/3] md:aspect-auto md:min-h-[260px]';
 
   const hasLink = Boolean(project.link);
   const Wrapper = hasLink ? 'a' : 'div';
@@ -240,7 +242,7 @@ function ProjectCard({
     <div
       ref={ref}
       id={`work-${project.id}`}
-      className={`reveal scroll-mt-24 md:scroll-mt-28 ${visible ? 'is-visible' : ''} ${spanClass} ${isStack ? 'relative' : ''}`}
+      className={`${reveal(visible)} scroll-mt-24 md:scroll-mt-28 ${spanClass} ${isStack ? 'relative' : ''}`}
       style={{ transitionDelay: `${(index % 2) * 0.12}s` }}
     >
       {isStack && (
@@ -288,7 +290,7 @@ function ProjectCard({
             {project.tags.map((tag) => (
               <span
                 key={tag}
-                className="font-mono text-[9px] tracking-wider uppercase text-white/60 px-2 py-1 rounded-full border border-white/10 bg-black/40 backdrop-blur-sm"
+                className="font-mono text-tag uppercase text-white/60 px-2 py-1 rounded-full border border-white/10 bg-black/40 backdrop-blur-sm"
               >
                 {tag}
               </span>
@@ -317,7 +319,7 @@ function ProjectCard({
           </p>
           {isStack && (
             <p className="font-mono text-[10px] tracking-wider uppercase text-teal/80 mt-2">
-              Tap to view {project.stackItems!.length} projects
+              Tap to view {project.stackItems!.length} {project.stackItems!.length === 1 ? 'project' : 'projects'}
             </p>
           )}
           <div className="mt-3 h-px w-0 group-hover:w-full bg-gradient-to-r from-transparent via-teal to-transparent transition-all duration-700" />
@@ -327,14 +329,69 @@ function ProjectCard({
   );
 }
 
+// Swaps the filter inside a View Transition when the browser supports one
+// (Chrome/Edge, Safari 18+) so the grid crossfades/reflows instead of
+// snapping — pure browser-native snapshot animation, no per-frame JS, so
+// it doesn't add to the cost profile on weaker/retina-laggy machines.
+// Falls back to a plain state update everywhere else, and skips the
+// transition entirely under prefers-reduced-motion rather than relying on
+// the ::view-transition-* pseudo-tree to be caught by a global selector.
+function applyWithViewTransition(apply: () => void) {
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const supportsViewTransitions = 'startViewTransition' in document;
+  if (prefersReducedMotion || !supportsViewTransitions) {
+    apply();
+    return;
+  }
+  (document as Document & { startViewTransition: (cb: () => void) => void }).startViewTransition(apply);
+}
+
 export default function Work() {
-  const headerRef = useRef<HTMLDivElement>(null);
-  const [headerVisible, setHeaderVisible] = useState(false);
+  const { ref: headerRef, visible: headerVisible } = useReveal<HTMLDivElement>(0.15);
   const [filter, setFilter] = useState('All');
   const filters = ['All', 'Restaurant', 'Church', 'Nonprofit', 'Retail', 'Craft', 'Tool', 'Student'];
   const [openStackId, setOpenStackId] = useState<string | null>(null);
+  // Drives the modal's enter/exit transition classes separately from
+  // openStackId itself: opening flips this true a frame after mount (so
+  // the initial "hidden" state actually paints first), closing flips it
+  // false immediately and only clears openStackId once the exit transition
+  // has had time to finish, so the panel fades/scales out instead of
+  // vanishing.
+  const [isStackModalShown, setIsStackModalShown] = useState(false);
+  const closeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const openStack = openStackId ? projects.find((p) => p.id === openStackId) : null;
   const { hash } = useLocation();
+
+  const handleOpenStack = (id: string) => {
+    if (closeTimeout.current) clearTimeout(closeTimeout.current);
+    setOpenStackId(id);
+  };
+
+  const handleCloseStack = () => {
+    setIsStackModalShown(false);
+    closeTimeout.current = setTimeout(() => setOpenStackId(null), 300);
+  };
+
+  useEffect(() => {
+    if (!openStackId) return;
+    const raf = requestAnimationFrame(() => setIsStackModalShown(true));
+    return () => cancelAnimationFrame(raf);
+  }, [openStackId]);
+
+  useEffect(() => {
+    if (!openStackId) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleCloseStack();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [openStackId]);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimeout.current) clearTimeout(closeTimeout.current);
+    };
+  }, []);
 
   // If a link (the sidebar list, a floating card, an external share) points
   // at a specific project via #work-<id>, make sure the active category
@@ -346,22 +403,6 @@ export default function Work() {
     if (!target) return;
     setFilter((current) => (current === 'All' || target.tags.includes(current) ? current : 'All'));
   }, [hash]);
-
-  useEffect(() => {
-    const el = headerRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setHeaderVisible(true);
-          obs.unobserve(entry.target);
-        }
-      },
-      { threshold: 0.15 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
 
   const filtered = filter === 'All' ? projects : projects.filter((p) => p.tags.includes(filter));
 
@@ -375,13 +416,13 @@ export default function Work() {
       />
       <div
         ref={headerRef}
-        className={`reveal ${headerVisible ? 'is-visible' : ''} relative z-10 max-w-7xl mx-auto mb-12 md:mb-16`}
+        className={reveal(headerVisible, 'relative z-10 max-w-7xl mx-auto mb-12 md:mb-16')}
       >
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-px bg-teal" />
-              <span className="font-mono text-[11px] tracking-[0.3em] uppercase text-teal">
+              <span className="font-mono text-eyebrow uppercase text-teal">
                 Selected Work
               </span>
             </div>
@@ -394,8 +435,9 @@ export default function Work() {
             {filters.map((f) => (
               <button
                 key={f}
-                onClick={() => setFilter(f)}
+                onClick={() => applyWithViewTransition(() => setFilter(f))}
                 data-cursor="hover"
+                aria-pressed={filter === f}
                 className={`px-4 py-2 rounded-full text-xs font-mono tracking-wider uppercase transition-all duration-300 border ${
                   filter === f
                     ? 'bg-teal text-black border-teal'
@@ -412,23 +454,29 @@ export default function Work() {
       <div className="relative z-10 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 auto-rows-auto">
           {filtered.map((project, i) => (
-            <ProjectCard key={project.id} project={project} index={i} onOpenStack={setOpenStackId} />
+            <ProjectCard key={project.id} project={project} index={i} onOpenStack={handleOpenStack} />
           ))}
         </div>
       </div>
 
       {openStack && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 bg-black/70 backdrop-blur-sm"
-          onClick={() => setOpenStackId(null)}
+          role="dialog"
+          aria-modal="true"
+          className={`fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 bg-black/70 backdrop-blur-sm transition-opacity duration-base ease-out-expo ${
+            isStackModalShown ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={handleCloseStack}
         >
           <div
-            className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-white/10 bg-ink-800 p-6 md:p-8"
+            className={`relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-white/10 bg-ink-800 p-6 md:p-8 transition-[opacity,transform] duration-base ease-out-expo ${
+              isStackModalShown ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-2'
+            }`}
             onClick={(e) => e.stopPropagation()}
             style={{ background: `linear-gradient(160deg, ${openStack.accent}14, #0d0d16 60%)` }}
           >
             <button
-              onClick={() => setOpenStackId(null)}
+              onClick={handleCloseStack}
               data-cursor="hover"
               className="absolute top-5 right-5 flex items-center justify-center w-9 h-9 rounded-full border border-white/15 bg-black/40 hover:bg-black/60 transition-colors"
               aria-label="Close"
@@ -439,7 +487,7 @@ export default function Work() {
               {openStack.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="font-mono text-[9px] tracking-wider uppercase text-white/60 px-2 py-1 rounded-full border border-white/10 bg-black/30"
+                  className="font-mono text-tag uppercase text-white/60 px-2 py-1 rounded-full border border-white/10 bg-black/30"
                 >
                   {tag}
                 </span>
@@ -470,7 +518,7 @@ export default function Work() {
                           {item.tags.map((tag) => (
                             <span
                               key={tag}
-                              className="font-mono text-[9px] tracking-wider uppercase text-white/50 px-2 py-0.5 rounded-full border border-white/10"
+                              className="font-mono text-tag uppercase text-white/50 px-2 py-0.5 rounded-full border border-white/10"
                             >
                               {tag}
                             </span>

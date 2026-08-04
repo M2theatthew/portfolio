@@ -4,6 +4,101 @@
 
 :root {
   color-scheme: dark;
+
+  /* ── Color tokens ─────────────────────────────────────
+     Expanded per the "keep the palette interesting" idea — amber and a
+     subtle blue glow join the existing teal/pink so accents have room to
+     differentiate without introducing new hues ad hoc later. */
+  --color-bg: #040409;
+  --color-text: #f0f0f5;
+  --color-muted: #9a9aa8;
+  --color-teal: #49c5b6;
+  --color-pink: #ff3d6e;
+  --color-amber: #ffb454;
+  --color-blue-glow: #6fd9ff;
+
+  /* Same colors as raw "r g b" triplets, for Tailwind's opacity-modifier
+     syntax (bg-teal/30, border-teal/50, etc.) — that syntax needs
+     rgb(var(--x) / <alpha>), which only works from channel numbers, not
+     a hex string or a var() that already resolves to one. Keep these in
+     sync with the hex values above if a color ever changes. */
+  --color-bg-rgb: 4 4 9;
+  --color-text-rgb: 240 240 245;
+  --color-muted-rgb: 154 154 168;
+  --color-teal-rgb: 73 197 182;
+  --color-teal-light-rgb: 111 217 204;
+  --color-teal-dark-rgb: 47 170 155;
+  --color-pink-rgb: 255 61 110;
+  --color-pink-light-rgb: 255 107 138;
+  --color-pink-dark-rgb: 217 40 80;
+  --color-amber-rgb: 255 180 84;
+  --color-blue-glow-rgb: 111 217 255;
+
+  /* ── Spacing scale ────────────────────────────────────── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-24: 6rem;
+
+  /* ── Radius scale ─────────────────────────────────────── */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+
+  /* ── Timing/easing ────────────────────────────────────── */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration-base: 300ms;
+  --duration-slow: 500ms;
+
+  /* ── Effect tokens (tier-adjusted below) ────────────────
+     Default values here are the "high" tier — full richness. The
+     [data-fx-tier] blocks further down override these for weaker
+     devices, so any component that reads var(--glass-blur) etc. degrades
+     automatically without needing its own tier check. */
+  --glass-blur: 18px;
+  --glass-bg: rgba(4, 4, 9, 0.55);
+  --shadow-sm: 0 4px 12px -4px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 20px 40px -12px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 30px 60px -20px rgba(0, 0, 0, 0.8);
+}
+
+/* Mid tier: still glassy, but a cheaper blur radius (roughly half the
+   rasterization cost) and shallower shadows. This is where most laptops
+   with integrated graphics (including Apple Silicon MacBooks) land. */
+[data-fx-tier='mid'] {
+  --glass-blur: 10px;
+  --shadow-md: 0 12px 24px -10px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 32px -14px rgba(0, 0, 0, 0.6);
+}
+
+/* Low tier (old/weak hardware, or prefers-reduced-motion): no live blur
+   at all — an opaque panel reads as "less premium" than glass, but it's
+   free, and it beats a page that stutters. */
+[data-fx-tier='low'] {
+  --glass-blur: 0px;
+  --glass-bg: rgba(4, 4, 9, 0.92);
+  --shadow-sm: none;
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Respect the OS-level setting directly too, independent of our own
+   scoring — this is the user explicitly telling every site "don't
+   animate at me," and it overrides everything else. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 * {
@@ -32,6 +127,40 @@ body {
 #root {
   width: 100%;
   background: #040409;
+}
+
+/* Every interactive element gets a visible focus ring when reached via
+   keyboard — :focus-visible (not :focus) so mouse/touch interaction stays
+   exactly as designed and only keyboard nav shows it. Nothing in this
+   file suppressed the browser default before; there just wasn't one
+   defined, so custom-styled buttons/links/cards rendered no indicator
+   at all for keyboard users. */
+:focus-visible {
+  outline: 2px solid var(--color-teal);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.skip-link {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 100;
+  transform: translateY(-150%);
+  background: var(--color-bg);
+  color: var(--color-teal);
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: transform var(--duration-base) var(--ease-out-expo);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -194,23 +323,52 @@ body {
               border-color 0.3s, opacity 0.3s;
 }
 
+/* ── Touch feedback (mobile equivalent of the cursor ring) ──────────── */
+/* One-shot per touch, transform/opacity only — GPU-composited, never
+   triggers layout, and the element is removed from the DOM as soon as
+   the animation ends so it can't accumulate. */
+.touch-ripple {
+  position: absolute;
+  left: 0; top: 0;
+  width: 56px; height: 56px;
+  margin-left: -28px; margin-top: -28px;
+  border-radius: 50%;
+  border: 1px solid rgba(73,197,182,0.8);
+  pointer-events: none;
+  z-index: 10;
+  animation: touch-ripple-anim 0.5s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+@keyframes touch-ripple-anim {
+  from { transform: scale(0.4); opacity: 0.9; }
+  to   { transform: scale(1.6); opacity: 0; }
+}
+.touch-hint {
+  animation: touch-hint-fade 4s ease forwards;
+}
+@keyframes touch-hint-fade {
+  0%   { opacity: 0; }
+  15%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 /* ── Pillbox nav ──────────────────────────────────────── */
 .pillbox {
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  background: rgba(4,4,9,0.55);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  background: var(--glass-bg);
   border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 9999px;
-  transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
+  border-radius: var(--radius-full);
+  transition: transform var(--duration-slow) var(--ease-out-expo);
 }
 
 .pillbox-menu {
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   background: rgba(4,4,9,0.85);
   border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 1.25rem;
-  box-shadow: 0 20px 40px -12px rgba(0,0,0,0.6);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 
 /* ── Side project list ────────────────────────────────── */
@@ -258,6 +416,18 @@ body {
 }
 .fade-in-only {
   animation: fadeInOnly 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── View Transitions (Work filter grid) ──────────────
+   Only fires when Work.tsx opts in via document.startViewTransition,
+   which it already skips under prefers-reduced-motion and on browsers
+   without support — so this block just retunes the crossfade duration/
+   easing to match the rest of the site's motion language instead of the
+   browser's 0.25s linear default. Snapshot-based, no per-frame JS. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--duration-slow);
+  animation-timing-function: var(--ease-out-expo);
 }
 
 /* ── Reveal on scroll (Work/About/Contact sections) ──── */

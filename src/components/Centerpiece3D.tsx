@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { getEffectsTier } from '@/lib/effectsTier';
 
 // Path to your model — drop your .glb file in /public/models/ and update
 // this if you name it something other than "centerpiece.glb".
@@ -12,6 +13,10 @@ export default function Centerpiece3D() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading');
   const [progress, setProgress] = useState(0);
+  // Mobile has no cursor to hint "this is draggable" via hover, so we show
+  // a brief coach-mark instead — dismissed on first touch or after a few
+  // seconds, and never shown again once the visitor has touched the globe.
+  const [showTouchHint, setShowTouchHint] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current!;
@@ -30,11 +35,22 @@ export default function Centerpiece3D() {
     camera.position.set(0, 0.8, 3.4);
 
     const renderer = new THREE.WebGLRenderer({
-      antialias: true,
+      // MSAA cost scales with sample count x pixel count, and this scene
+      // already has two soft transparent shells (cloud + atmosphere) doing
+      // most of the edge-softening work visually — antialiasing on top of
+      // that was paying twice for the same effect. Turned off; the globe's
+      // silhouette is a sphere, so aliasing there is barely perceptible.
+      antialias: false,
       alpha: true, // transparent so it composites over SceneCanvas's gradient background
       powerPreference: 'high-performance',
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // Capped by device tier — see effectsTier.ts. On integrated-GPU
+    // laptops (most MacBooks) this scene's fragment cost is the actual
+    // bottleneck, and it scales with the *square* of pixel ratio, so
+    // dropping a tier here buys back real headroom.
+    const tier = getEffectsTier();
+    const pixelRatioCap = tier === 'low' ? 1 : tier === 'mid' ? 1.5 : 2;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioCap));
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -197,7 +213,6 @@ export default function Centerpiece3D() {
       t.generateMipmaps = true;
       t.minFilter = THREE.LinearMipmapLinearFilter;
       t.magFilter = THREE.LinearFilter;
-      t.needsUpdate = true;
       return t;
     };
 
@@ -222,6 +237,16 @@ export default function Centerpiece3D() {
           if (!(child instanceof THREE.Mesh)) return;
           child.castShadow = false;
           child.receiveShadow = false;
+
+          // Low tier skips both transparent overdraw shells entirely —
+          // no material build, no texture fetch, no extra draw call.
+          // The bare surface still reads clearly as "a globe"; what's
+          // lost is the cloud haze and the rim-light glow, which cost
+          // real fill rate for a fairly subtle payoff.
+          if (tier === 'low' && (child.name === 'cloud' || child.name === 'atmo')) {
+            child.visible = false;
+            return;
+          }
 
           if (child.name === 'surface') {
             child.material = new THREE.MeshStandardMaterial({
@@ -336,13 +361,49 @@ export default function Centerpiece3D() {
     controls.autoRotateSpeed = 0.5;
     controls.update();
 
-    // On touch devices, a one-finger drag on OrbitControls captures the
-    // gesture to orbit the model — which would block the user from
-    // scrolling past the hero. Disable dragging there; it still renders
-    // and auto-rotates, just isn't grabbable. Desktop (mouse) keeps full
-    // drag/scroll-to-zoom interaction.
+    // Touch devices get full drag-to-orbit / pinch-to-zoom too now. Note
+    // the trade-off: a one-finger drag that starts on the globe rotates it
+    // instead of scrolling the page — same as it would on any interactive
+    // canvas (maps, model viewers, etc.). Visitors can still scroll by
+    // swiping from anywhere outside the globe's full-bleed canvas, or via
+    // the nav. touch-action: none stops the browser's own pinch-zoom/
+    // pull-to-refresh gestures from fighting OrbitControls' own handling
+    // of the same touches.
     const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
-    controls.enabled = !isCoarsePointer;
+    controls.enabled = true;
+    let hintTimeout: ReturnType<typeof setTimeout> | undefined;
+    if (isCoarsePointer) {
+      renderer.domElement.style.touchAction = 'none';
+      setShowTouchHint(true);
+      hintTimeout = setTimeout(() => setShowTouchHint(false), 4000);
+    }
+
+    // Touch feedback — mobile has no hover state, so there's no equivalent
+    // of the desktop custom-cursor's hover ring to signal "this responds
+    // to input." Two things stand in for it: a light haptic tick where
+    // supported (Android Chrome; iOS Safari has no Vibration API at all,
+    // hence the visual ripple as the primary cue that works everywhere),
+    // and a CSS ripple at the touch point mirroring the desktop cursor's
+    // visual language. Both are one-shot per touch, not per-frame, so
+    // they cost nothing in the render loop.
+    const onTouchFeedback = (e: TouchEvent) => {
+      setShowTouchHint(false);
+      if ('vibrate' in navigator) {
+        try { navigator.vibrate(12); } catch { /* unsupported/blocked — ignore */ }
+      }
+      const touch = e.touches[0];
+      if (!touch) return;
+      const rect = container.getBoundingClientRect();
+      const ripple = document.createElement('div');
+      ripple.className = 'touch-ripple';
+      ripple.style.left = `${touch.clientX - rect.left}px`;
+      ripple.style.top = `${touch.clientY - rect.top}px`;
+      container.appendChild(ripple);
+      ripple.addEventListener('animationend', () => ripple.remove(), { once: true });
+    };
+    if (isCoarsePointer) {
+      renderer.domElement.addEventListener('touchstart', onTouchFeedback, { passive: true });
+    }
 
     // Pause auto-rotate while the user is actively dragging/zooming, resume
     // shortly after they let go so it doesn't fight their input.
@@ -373,6 +434,13 @@ export default function Centerpiece3D() {
     renderer.domElement.addEventListener('dblclick', onDoubleClick);
 
     let raf = 0;
+    // The scene sits in a full-screen hero, but this is a normally
+    // scrolling page — once the visitor scrolls three sections past it,
+    // there's no reason a WebGL scene should still be rendering every
+    // frame off-screen. isVisible gates the render call itself (not just
+    // requestAnimationFrame scheduling), so a hidden globe costs
+    // essentially nothing instead of full GPU frame time for nothing.
+    let isVisible = true;
     const animate = () => {
       controls.update(); // required every frame when damping/autoRotate is on
       if (cloudMesh) cloudMesh.rotation.y += 0.0006; // clouds drift slightly faster than the globe
@@ -383,10 +451,16 @@ export default function Centerpiece3D() {
         if (Math.abs(model.rotation.y - reorientTarget) < 0.001) reorientTarget = null;
       }
 
-      renderer.render(scene, camera);
+      if (isVisible) renderer.render(scene, camera);
       raf = requestAnimationFrame(animate);
     };
     animate();
+
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => { isVisible = entry.isIntersecting; },
+      { threshold: 0 }
+    );
+    visibilityObserver.observe(container);
 
     const onResize = () => {
       const w = container.clientWidth;
@@ -398,13 +472,16 @@ export default function Centerpiece3D() {
     window.addEventListener('resize', onResize);
 
     return () => {
+      visibilityObserver.disconnect();
       cancelAnimationFrame(raf);
       clearTimeout(resumeTimeout);
       clearTimeout(geoTimeout);
+      clearTimeout(hintTimeout);
       geoController.abort();
       controls.removeEventListener('start', onInteractionStart);
       controls.removeEventListener('end', onInteractionEnd);
       renderer.domElement.removeEventListener('dblclick', onDoubleClick);
+      renderer.domElement.removeEventListener('touchstart', onTouchFeedback);
       window.removeEventListener('resize', onResize);
       controls.dispose();
       dracoLoader.dispose();
@@ -437,6 +514,13 @@ export default function Centerpiece3D() {
           <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-white/15 text-center max-w-xs">
             No model found at /public/models/centerpiece.glb
           </div>
+        </div>
+      )}
+      {status === 'ready' && showTouchHint && (
+        <div className="touch-hint pointer-events-none absolute bottom-8 left-0 right-0 flex justify-center">
+          <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-white/40">
+            touch &amp; drag to explore
+          </span>
         </div>
       )}
     </div>

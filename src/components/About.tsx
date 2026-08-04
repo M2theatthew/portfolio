@@ -1,26 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
 import { services } from '@/data/services';
 import AmbientParticles from '@/components/AmbientParticles';
+import { useReveal, reveal } from '@/lib/useReveal';
 
 export default function About() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          obs.unobserve(entry.target);
-        }
-      },
-      { threshold: 0.12 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
+  const { ref, visible } = useReveal<HTMLDivElement>();
 
   const stats = [
     { value: '60+', label: 'Projects' },
@@ -65,7 +48,7 @@ export default function About() {
         ]}
         splashes={[{ x: 0.9, y: 0.15, hue: 340, count: 22 }]}
       />
-      <div className={`reveal ${visible ? 'is-visible' : ''} relative z-10 max-w-7xl mx-auto`}>
+      <div className={reveal(visible, 'relative z-10 max-w-7xl mx-auto')}>
         <div className="flex items-center gap-3 mb-6">
           <div className="w-8 h-px bg-teal" />
           <span className="font-mono text-[11px] tracking-[0.3em] uppercase text-teal">About</span>

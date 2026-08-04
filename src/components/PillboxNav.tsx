@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
+import Button from '@/components/ui/Button';
 
 const navLinks = [
   { label: 'Work', href: '/#work' },
@@ -67,13 +68,9 @@ export default function PillboxNav() {
               {label}
             </a>
           ))}
-          <Link
-            to="/get-in-touch"
-            data-cursor="hover"
-            className="ml-1 rounded-full bg-teal/10 border border-teal/30 px-4 py-1.5 text-sm font-medium text-teal hover:bg-teal hover:text-black transition-all whitespace-nowrap"
-          >
+          <Button to="/get-in-touch" size="sm" className="ml-1 whitespace-nowrap">
             Start a Project
-          </Link>
+          </Button>
         </div>
 
         {/* Mobile hamburger toggle */}

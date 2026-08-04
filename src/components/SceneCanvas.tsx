@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { getEffectsTier } from '@/lib/effectsTier';
 
 interface Splash {
   x: number;
@@ -22,21 +23,38 @@ export default function SceneCanvas() {
     const ctx = canvas.getContext('2d')!;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
+    // documentElement.clientWidth/Height (not window.innerWidth/Height) is
+    // what actually respects `scrollbar-gutter: stable` on <html> — inner*
+    // reports the full window including the reserved gutter, so anything
+    // sized off it ends up wider than the real content area. That mismatch
+    // is what caused the horizontal shift once the page grew past one
+    // viewport tall and the browser engaged the scrollbar.
+    const vw = () => document.documentElement.clientWidth;
+    const vh = () => document.documentElement.clientHeight;
+
     const resize = () => {
-      canvas.width = window.innerWidth * dpr;
-      canvas.height = window.innerHeight * dpr;
-      canvas.style.width = window.innerWidth + 'px';
-      canvas.style.height = window.innerHeight + 'px';
+      canvas.width = vw() * dpr;
+      canvas.height = vh() * dpr;
+      canvas.style.width = vw() + 'px';
+      canvas.style.height = vh() + 'px';
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(dpr, dpr);
     };
     resize();
     window.addEventListener('resize', resize);
 
+    // Particle counts scale with device tier — same visual language at
+    // every tier, just less of it. This is the batched/pre-composited
+    // version already (see comments below), so even "high" tier is far
+    // cheaper than the original per-particle-draw-call version was.
+    const tier = getEffectsTier();
+    const dustCount = tier === 'low' ? 30 : tier === 'mid' ? 70 : 120;
+    const splashCounts = tier === 'low' ? [20, 15, 10] : tier === 'mid' ? [40, 28, 18] : [60, 40, 25];
+
     // Ambient floating dust particles
-    const dust = Array.from({ length: 120 }, () => ({
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
+    const dust = Array.from({ length: dustCount }, () => ({
+      x: Math.random() * vw(),
+      y: Math.random() * vh(),
       vx: (Math.random() - 0.5) * 0.15,
       vy: -Math.random() * 0.2 - 0.05,
       size: Math.random() * 1.8 + 0.4,
@@ -46,9 +64,9 @@ export default function SceneCanvas() {
 
     // Permanent splash zones (match the image — right side pink burst)
     const splashes: Splash[] = [
-      createSplash(window.innerWidth * 0.78, window.innerHeight * 0.52, 340, 60),
-      createSplash(window.innerWidth * 0.72, window.innerHeight * 0.58, 340, 40),
-      createSplash(window.innerWidth * 0.15, window.innerHeight * 0.7, 188, 25),
+      createSplash(vw() * 0.78, vh() * 0.52, 340, splashCounts[0]),
+      createSplash(vw() * 0.72, vh() * 0.58, 340, splashCounts[1]),
+      createSplash(vw() * 0.15, vh() * 0.7, 188, splashCounts[2]),
     ];
 
     function createSplash(x: number, y: number, hue: number, count: number): Splash {
@@ -71,8 +89,8 @@ export default function SceneCanvas() {
       };
     }
 
-    const w = () => window.innerWidth;
-    const h = () => window.innerHeight;
+    const w = vw;
+    const h = vh;
 
     // These four gradients never change frame-to-frame (same geometry,
     // same color stops), so we don't just cache the CanvasGradient objects —
@@ -225,7 +243,6 @@ export default function SceneCanvas() {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 z-0"
-      style={{ width: '100vw', height: '100vh' }}
     />
   );
 }

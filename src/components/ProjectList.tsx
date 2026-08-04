@@ -30,7 +30,7 @@ export default function ProjectList() {
         / Work
       </div>
       <div className="flex flex-col gap-3">
-        {projects.map((p) => (
+        {projects.map((p, i) => (
           <button
             key={p.id}
             onClick={() => {
@@ -42,13 +42,13 @@ export default function ProjectList() {
           >
             <div className="flex items-baseline gap-3">
               <span className="font-mono text-[10px] text-white/20 tabular-nums">
-                {p.id}
+                {String(i + 1).padStart(2, '0')}
               </span>
               <div>
                 <div className="text-sm font-medium tracking-wide transition-colors">
                   {p.title}
                 </div>
-                <div className="font-mono text-[9px] tracking-wider uppercase text-white/20 mt-0.5">
+                <div className="font-mono text-tag uppercase text-white/20 mt-0.5">
                   {p.category} · {p.detail}
                 </div>
               </div>

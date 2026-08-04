@@ -34,6 +34,9 @@ export default function App() {
 
   return (
     <>
+      <a href="#main-content" className="skip-link">
+        Skip to content
+      </a>
       <CustomCursor />
       <div className="grain" />
       <div className="scanlines" />

@@ -43,68 +43,70 @@ export default function HomePage() {
     <>
       <PillboxNav />
 
-      {/* Full-screen immersive scene */}
-      <div className="relative w-full h-screen overflow-hidden">
-        <SceneCanvas />
-        <Suspense
-          fallback={
-            <div className="absolute inset-0 z-[5] flex items-center justify-center">
-              <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/20">
-                Loading model
+      <main id="main-content">
+        {/* Full-screen immersive scene */}
+        <div className="relative w-full h-screen overflow-hidden">
+          <SceneCanvas />
+          <Suspense
+            fallback={
+              <div className="absolute inset-0 z-[5] flex items-center justify-center">
+                <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/20">
+                  Loading model
+                </div>
               </div>
+            }
+          >
+            <Centerpiece3D />
+          </Suspense>
+          <FloatingCards />
+
+          {/* Center title */}
+          <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+            <GlitchTitle />
+          </div>
+
+          {/* Left project list */}
+          <ProjectList />
+
+          {/* Bottom bar */}
+          <div
+            className="absolute bottom-6 left-0 right-0 z-20 flex items-end justify-between px-6 md:px-10 fade-up"
+            style={{ animationDelay: '1.4s', opacity: 0 }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-coral animate-pulse" />
+              <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/30">
+                9 Projects · Scroll to explore
+              </span>
             </div>
-          }
-        >
-          <Centerpiece3D />
-        </Suspense>
-        <FloatingCards />
-
-        {/* Center title */}
-        <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-          <GlitchTitle />
-        </div>
-
-        {/* Left project list */}
-        <ProjectList />
-
-        {/* Bottom bar */}
-        <div
-          className="absolute bottom-6 left-0 right-0 z-20 flex items-end justify-between px-6 md:px-10 fade-up"
-          style={{ animationDelay: '1.4s', opacity: 0 }}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-coral animate-pulse" />
-            <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/30">
-              9 Projects · Scroll to explore
-            </span>
+            <div className="flex items-center gap-6 font-mono text-[10px] tracking-[0.2em] uppercase text-white/25">
+              <span>Honea Path, SC</span>
+              <span className="hidden md:inline">·</span>
+              <span className="hidden md:inline">ET</span>
+            </div>
           </div>
-          <div className="flex items-center gap-6 font-mono text-[10px] tracking-[0.2em] uppercase text-white/25">
-            <span>Honea Path, SC</span>
-            <span className="hidden md:inline">·</span>
-            <span className="hidden md:inline">ET</span>
+
+          {/* Right side metadata */}
+          <div
+            className="absolute right-6 md:right-10 top-1/2 -translate-y-1/2 z-20 hidden lg:flex flex-col items-end gap-2 fade-up"
+            style={{ animationDelay: '1.3s', opacity: 0 }}
+          >
+            <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/20">
+              / Index
+            </div>
+            <div className="font-mono text-[10px] tracking-wider text-white/15 tabular-nums">
+              01-09
+            </div>
           </div>
         </div>
 
-        {/* Right side metadata */}
-        <div
-          className="absolute right-6 md:right-10 top-1/2 -translate-y-1/2 z-20 hidden lg:flex flex-col items-end gap-2 fade-up"
-          style={{ animationDelay: '1.3s', opacity: 0 }}
-        >
-          <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/20">
-            / Index
-          </div>
-          <div className="font-mono text-[10px] tracking-wider text-white/15 tabular-nums">
-            01-09
-          </div>
+        {/* Scrollable content sections */}
+        <div className="relative z-30 bg-[#040409]">
+          <Work />
+          <About />
+          <Contact />
         </div>
-      </div>
-
-      {/* Scrollable content sections */}
-      <div className="relative z-30 bg-[#040409]">
-        <Work />
-        <About />
-        <Contact />
-      </div>
+      </main>
     </>
   );
 }

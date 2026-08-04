@@ -1,28 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, Phone, Mail, MapPin } from 'lucide-react';
 import AmbientParticles from '@/components/AmbientParticles';
+import { useReveal, reveal } from '@/lib/useReveal';
+import { useEffect, useState } from 'react';
 
 export default function Contact() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+  const { ref, visible } = useReveal<HTMLElement>();
   const [time, setTime] = useState('');
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          obs.unobserve(entry.target);
-        }
-      },
-      { threshold: 0.12 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
 
   useEffect(() => {
     const update = () => {
@@ -45,7 +29,7 @@ export default function Contact() {
     <footer
       id="contact"
       ref={ref}
-      className={`reveal ${visible ? 'is-visible' : ''} relative pt-24 md:pt-32 pb-10 px-6 md:px-10 z-30 overflow-hidden`}
+      className={reveal(visible, 'relative pt-24 md:pt-32 pb-10 px-6 md:px-10 z-30 overflow-hidden')}
     >
       <AmbientParticles
         density={45}
