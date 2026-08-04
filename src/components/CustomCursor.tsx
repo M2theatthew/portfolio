@@ -51,10 +51,8 @@ export default function CustomCursor() {
       dy += (my - dy) * 0.5;
       rx += (mx - rx) * 0.15;
       ry += (my - ry) * 0.15;
-      dot.style.left = dx + 'px';
-      dot.style.top = dy + 'px';
-      ring.style.left = rx + 'px';
-      ring.style.top = ry + 'px';
+      dot.style.transform = `translate3d(${dx}px, ${dy}px, 0) translate(-50%, -50%)`;
+      ring.style.transform = `translate3d(${rx}px, ${ry}px, 0) translate(-50%, -50%)`;
       raf = requestAnimationFrame(render);
     };
     render();
