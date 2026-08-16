@@ -82,10 +82,10 @@ const cards: CardData[] = [
   },
   // Far bottom right
   {
-    workId: '06',
-    image: '/images/work/eoin-reardon.jpg',
-    title: 'EOIN REARDON',
-    meta: 'WOODWORK · SHOP',
+    workId: '07',
+    image: '/images/work/liveboard.jpg',
+    title: 'LIVEBOARD',
+    meta: 'TOOL · 3D MULTIPLAYER',
     width: 215,
     height: 135,
     baseX: 82,

@@ -1,8 +1,16 @@
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Phone, Mail, MapPin } from 'lucide-react';
+import { ArrowUpRight, Phone, Mail, MapPin, Github } from 'lucide-react';
 import AmbientParticles from '@/components/AmbientParticles';
 import { useReveal, reveal } from '@/lib/useReveal';
 import { useEffect, useState } from 'react';
+
+// Icon-only social/external profile links, kept separate from the internal
+// site navigation in the "Links" column below. Add more platforms here
+// (LinkedIn, X, Instagram, etc.) as they come online — each just needs an
+// icon, label (for a11y), and href.
+const socialLinks = [
+  { label: 'GitHub', href: 'https://github.com/M2theatthew', Icon: Github },
+];
 
 export default function Contact() {
   const { ref, visible } = useReveal<HTMLElement>();
@@ -67,7 +75,7 @@ export default function Contact() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-[0.8fr_1.5fr_1fr_0.9fr_0.9fr] gap-8 mb-16 border-t border-white/5 pt-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-[0.8fr_1.5fr_1fr_0.9fr_0.7fr_0.9fr] gap-8 mb-16 border-t border-white/5 pt-12">
           <div>
             <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-white/30 mb-3">Phone</div>
             <a
@@ -106,6 +114,24 @@ export default function Contact() {
             <p className="font-mono text-sm text-white/70 tabular-nums">
               {time} <span className="text-white/30">ET</span>
             </p>
+          </div>
+          <div>
+            <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-white/30 mb-3">Social</div>
+            <div className="flex items-center gap-3">
+              {socialLinks.map(({ label, href, Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  data-cursor="hover"
+                  className="flex items-center justify-center w-9 h-9 rounded-full border border-white/10 bg-white/[0.02] text-white/60 hover:text-teal hover:border-teal/40 transition-colors"
+                >
+                  <Icon size={15} />
+                </a>
+              ))}
+            </div>
           </div>
           <div>
             <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-white/30 mb-3">Links</div>

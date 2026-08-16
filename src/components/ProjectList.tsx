@@ -14,7 +14,7 @@ const projects: Project[] = [
   { id: '08', title: 'WiFi Monitor', category: 'Tool', detail: 'Desktop + Web' },
   { id: '04', title: 'The Melt Pizzeria', category: 'Restaurant', detail: 'Live site' },
   { id: '09', title: 'Lightweight Local CRM', category: 'Tool', detail: 'Business Suite' },
-  { id: '06', title: 'Eoin Reardon', category: 'Craft', detail: 'Live site' },
+  { id: '07', title: 'LiveBoard', category: 'Tool', detail: '3D Multiplayer' },
 ];
 
 export default function ProjectList() {

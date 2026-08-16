@@ -40,6 +40,17 @@ const projects: Project[] = [
     image: '/images/work/local-crm.jpg',
   },
   {
+    id: '07',
+    title: 'LiveBoard',
+    category: 'Real-time multiplayer 3D whiteboard: physics-driven markers and eraser, sticky-note kanban board, live drawing sync, and chat, built with React Three Fiber and Rapier physics.',
+    year: '',
+    tags: ['Tool', '3D App', 'Multiplayer'],
+    link: '/work/liveboard/index.html',
+    span: 'wide',
+    accent: '#7c5cff',
+    image: '/images/work/liveboard.jpg',
+  },
+  {
     id: '10',
     title: 'Java Projects',
     category: 'CPT-237: three semester projects, from a desktop game to a command-line utility.',
