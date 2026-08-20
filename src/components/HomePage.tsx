@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import SceneCanvas from '@/components/SceneCanvas';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import PillboxNav from '@/components/PillboxNav';
 import FloatingCards from '@/components/FloatingCards';
 import GlitchTitle from '@/components/GlitchTitle';
@@ -47,17 +48,19 @@ export default function HomePage() {
         {/* Full-screen immersive scene */}
         <div className="relative w-full h-screen overflow-hidden">
           <SceneCanvas />
-          <Suspense
-            fallback={
-              <div className="absolute inset-0 z-[5] flex items-center justify-center">
-                <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/20">
-                  Loading model
+          <ErrorBoundary fallback={null}>
+            <Suspense
+              fallback={
+                <div className="absolute inset-0 z-[5] flex items-center justify-center">
+                  <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/20">
+                    Loading model
+                  </div>
                 </div>
-              </div>
-            }
-          >
-            <Centerpiece3D />
-          </Suspense>
+              }
+            >
+              <Centerpiece3D />
+            </Suspense>
+          </ErrorBoundary>
           <FloatingCards />
 
           {/* Center title */}
@@ -76,7 +79,7 @@ export default function HomePage() {
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-coral animate-pulse" />
               <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/30">
-                9 Projects · Scroll to explore
+                60+ Projects · Scroll to explore
               </span>
             </div>
             <div className="flex items-center gap-6 font-mono text-[10px] tracking-[0.2em] uppercase text-white/25">
@@ -95,7 +98,7 @@ export default function HomePage() {
               / Index
             </div>
             <div className="font-mono text-[10px] tracking-wider text-white/15 tabular-nums">
-              01-09
+              01-14
             </div>
           </div>
         </div>

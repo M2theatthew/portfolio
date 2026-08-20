@@ -52,10 +52,10 @@ const cards: CardData[] = [
   },
   // Bottom center, below the tagline — clear of the other left-side cards
   {
-    workId: '08',
-    image: '/images/work/wifi-monitor.jpg',
-    title: 'WIFI MONITOR',
-    meta: 'TOOL · DESKTOP + WEB',
+    workId: '14',
+    image: '/images/work/weatherly.jpg',
+    title: 'WEATHERLY',
+    meta: 'TOOL · WEATHER APP',
     width: 200,
     height: 126,
     baseX: 42,
@@ -115,7 +115,22 @@ export default function FloatingCards() {
     };
     window.addEventListener('mousemove', onMove);
 
+    // Same fix as SceneCanvas/Centerpiece3D: this parallax loop kept
+    // recomputing transforms for all 5 cards every frame forever, even
+    // scrolled fully out of view behind Work/About/Contact. Gate the
+    // per-frame work itself on scroll visibility.
+    let isVisible = true;
+    const sceneEl = sceneRef.current;
+    const visibilityObserver = sceneEl
+      ? new IntersectionObserver(([entry]) => { isVisible = entry.isIntersecting; }, { threshold: 0 })
+      : null;
+    if (sceneEl && visibilityObserver) visibilityObserver.observe(sceneEl);
+
     const animate = () => {
+      if (!isVisible) {
+        raf = requestAnimationFrame(animate);
+        return;
+      }
       cx += (mx - cx) * 0.04;
       cy += (my - cy) * 0.04;
 
@@ -146,6 +161,7 @@ export default function FloatingCards() {
     return () => {
       window.removeEventListener('mousemove', onMove);
       cancelAnimationFrame(raf);
+      visibilityObserver?.disconnect();
     };
   }, []);
 

@@ -12,7 +12,7 @@ const projects: Project[] = [
   { id: '01', title: "Empower Honea Path", category: 'Nonprofit', detail: '5 pages' },
   { id: '02', title: 'Honea Path First Baptist', category: 'Church', detail: '3 pages' },
   { id: '08', title: 'WiFi Monitor', category: 'Tool', detail: 'Desktop + Web' },
-  { id: '04', title: 'The Melt Pizzeria', category: 'Restaurant', detail: 'Live site' },
+  { id: '14', title: 'Weatherly', category: 'Tool', detail: 'Weather App' },
   { id: '09', title: 'Lightweight Local CRM', category: 'Tool', detail: 'Business Suite' },
   { id: '07', title: 'LiveBoard', category: 'Tool', detail: '3D Multiplayer' },
 ];

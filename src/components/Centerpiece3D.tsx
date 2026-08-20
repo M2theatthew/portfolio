@@ -34,16 +34,29 @@ export default function Centerpiece3D() {
     // backdrop rather than an object floating in space on first paint.
     camera.position.set(0, 0.8, 3.4);
 
-    const renderer = new THREE.WebGLRenderer({
-      // MSAA cost scales with sample count x pixel count, and this scene
-      // already has two soft transparent shells (cloud + atmosphere) doing
-      // most of the edge-softening work visually — antialiasing on top of
-      // that was paying twice for the same effect. Turned off; the globe's
-      // silhouette is a sphere, so aliasing there is barely perceptible.
-      antialias: false,
-      alpha: true, // transparent so it composites over SceneCanvas's gradient background
-      powerPreference: 'high-performance',
-    });
+    // WebGLRenderer's constructor throws (rather than returning null) when
+    // a context can't be created — disabled hardware acceleration, a GPU
+    // driver on Firefox's blocklist, WebGL turned off in browser settings,
+    // etc. Catching it here means that failure degrades to "no 3D globe"
+    // instead of an uncaught error — belt-and-suspenders alongside the
+    // ErrorBoundary wrapping this component in HomePage.
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        // MSAA cost scales with sample count x pixel count, and this scene
+        // already has two soft transparent shells (cloud + atmosphere) doing
+        // most of the edge-softening work visually — antialiasing on top of
+        // that was paying twice for the same effect. Turned off; the globe's
+        // silhouette is a sphere, so aliasing there is barely perceptible.
+        antialias: false,
+        alpha: true, // transparent so it composites over SceneCanvas's gradient background
+        powerPreference: 'high-performance',
+      });
+    } catch (err) {
+      console.error('[Centerpiece3D] WebGL unavailable, skipping 3D globe:', err);
+      setStatus('error');
+      return;
+    }
     // Capped by device tier — see effectsTier.ts. On integrated-GPU
     // laptops (most MacBooks) this scene's fragment cost is the actual
     // bottleneck, and it scales with the *square* of pixel ratio, so

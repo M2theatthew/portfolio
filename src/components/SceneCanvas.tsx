@@ -138,8 +138,29 @@ export default function SceneCanvas() {
     buildGradients();
     window.addEventListener('resize', buildGradients);
 
+    // Same fix as Centerpiece3D: this canvas is `position: fixed`, so it
+    // stays mounted behind the whole page as the visitor scrolls through
+    // Work/About/Contact — without this gate it kept redrawing ~250
+    // batched-but-still-real particles every single frame forever, even
+    // fully hidden behind those sections' opaque backgrounds. isVisible
+    // gates the draw call itself (not the rAF scheduling), so a scrolled-
+    // away hero costs effectively nothing instead of full frame time.
+    let isVisible = true;
+    // The canvas is `position: fixed`, so its DOM parent — the hero's
+    // `h-screen` wrapper in HomePage — is what we actually need to watch
+    // for scroll visibility, not the canvas element itself.
+    const heroEl = canvas.parentElement;
+    const visibilityObserver = heroEl
+      ? new IntersectionObserver(([entry]) => { isVisible = entry.isIntersecting; }, { threshold: 0 })
+      : null;
+    if (heroEl && visibilityObserver) visibilityObserver.observe(heroEl);
+
     let raf = 0;
     const render = () => {
+      if (!isVisible) {
+        raf = requestAnimationFrame(render);
+        return;
+      }
       // One blit replaces the old clearRect + 4x full-viewport fillRect —
       // it both clears and paints the background in a single cheap op,
       // since the background bitmap is fully opaque edge-to-edge.
@@ -234,6 +255,7 @@ export default function SceneCanvas() {
 
     return () => {
       cancelAnimationFrame(raf);
+      visibilityObserver?.disconnect();
       window.removeEventListener('resize', resize);
       window.removeEventListener('resize', buildGradients);
     };
