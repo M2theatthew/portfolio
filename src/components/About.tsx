@@ -1,170 +1,99 @@
-import { services } from '@/data/services';
-import AmbientParticles from '@/components/AmbientParticles';
-import { useReveal, reveal } from '@/lib/useReveal';
+import { useReveal } from "@/hooks/use-reveal";
+import { BRAND_CONTACT } from "@/lib/site-data";
+import { cn } from "@/lib/utils";
 
-export default function About() {
-  const { ref, visible } = useReveal<HTMLDivElement>();
-
-  const stats = [
-    { value: '60+', label: 'Projects' },
-    { value: '100%', label: 'Custom Code' },
-    { value: 'Endless', label: 'Industries' },
-    { value: '1', label: 'Developer' },
-  ];
-
-  const profileBuilds = [
-    'custom websites',
-    'web applications',
-    'business automation',
-    'internal tools',
-    'system integrations',
-  ];
-  const profileTech = [
-    'React',
-    'Next.js',
-    'JavaScript',
-    'HTML',
-    'CSS',
-    'Node.js',
-    'Python',
-    'SQL',
-    'Tailwind CSS',
-  ];
-  const profileFocus = [
-    'performance',
-    'clean architecture',
-    'accessibility',
-    'practical solutions',
-  ];
+export function About() {
+  const photo = useReveal({ y: 22 });
+  const header = useReveal({ delay: 80, y: 16 });
+  const bio = useReveal<HTMLParagraphElement>({ delay: 160, y: 16 });
+  const quote = useReveal<HTMLParagraphElement>({ delay: 240, y: 16 });
+  const list = useReveal<HTMLUListElement>({ delay: 320, y: 16 });
 
   return (
-    <section id="about" ref={ref} className="relative py-24 md:py-32 px-6 md:px-10 z-30">
-      <AmbientParticles
-        density={50}
-        hues={[188, 340]}
-        glows={[
-          { x: 0.12, y: 0.25, hue: 188, alpha: 0.07, radiusFrac: 0.35 },
-          { x: 0.88, y: 0.75, hue: 340, alpha: 0.06, radiusFrac: 0.3 },
-        ]}
-        splashes={[{ x: 0.9, y: 0.15, hue: 340, count: 22 }]}
-      />
-      <div className={reveal(visible, 'relative z-10 max-w-7xl mx-auto')}>
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-8 h-px bg-teal" />
-          <span className="font-mono text-[11px] tracking-[0.3em] uppercase text-teal">About</span>
+    <section id="about" className="scroll-mt-24 px-5 py-24 md:px-8">
+      <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
+        <div
+          ref={photo.ref}
+          className={cn(
+            "overflow-hidden rounded-3xl border border-border shadow-(--shadow-border)",
+            photo.className,
+          )}
+          style={photo.style}
+        >
+          <img
+            src="/projects/clemson.jpg"
+            alt="Forested lake shoreline in the South Carolina Upstate"
+            loading="lazy"
+            decoding="async"
+            className="aspect-4/3 w-full object-cover outline outline-1 -outline-offset-1 outline-white/10"
+          />
         </div>
-
-        <div className="grid md:grid-cols-2 gap-12 md:gap-20 mb-20">
-          <h2 className="text-4xl md:text-6xl font-light tracking-tight leading-[1.05]">
-            Not every problem <br />
-            <span className="text-white/40">is a technology problem.</span>
-          </h2>
-          <div className="space-y-4 text-white/50 font-light leading-relaxed text-lg">
-            <p>
-              I'm Matthew Hunt, founder of Upstate Technology Solutions. I
-              design and build websites and custom software for businesses,
-              nonprofits, churches, and everything in between, all hand-coded,
-              not assembled from a page builder. Based in Honea Path, Upstate
-              South Carolina, working with clients locally and remotely.
-            </p>
-            <p>
-              Plenty of local businesses get by just fine without a new
-              website or a new tool. My job isn't to sell you technology;
-              it's to give you an honest read on whether it would actually
-              help and to build only what's worth building.
-            </p>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-20 border-y border-white/5 py-12">
-          {stats.map((s) => (
-            <div key={s.label}>
-              <div className="text-4xl md:text-5xl font-light text-white tabular-nums">
-                {s.value}
-              </div>
-              <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-white/30 mt-2">
-                {s.label}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* profile.js snippet */}
-        <div className="mb-20 rounded-2xl border border-white/5 overflow-hidden bg-black/30">
-          <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/5 bg-white/[0.02]">
-            <div className="flex gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-              <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-              <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-            </div>
-            <span className="font-mono text-[10px] tracking-wider text-white/30 ml-2">profile.js</span>
-          </div>
-          <pre className="p-5 md:p-6 overflow-x-auto text-[13px] leading-relaxed font-mono">
-            <code className="text-white/60">
-              <span className="text-teal">const</span> profile = {'{'}
-              {'\n'}  name: <span className="text-coral">'Matthew Hunt'</span>,
-              {'\n'}  role: <span className="text-coral">'Software Developer'</span>,
-              {'\n'}  based: <span className="text-coral">'Upstate, SC'</span>,
-              {'\n'}  builds: [
-              {profileBuilds.map((b, i) => (
-                <span key={b}>
-                  {'\n'}    <span className="text-coral">'{b}'</span>
-                  {i < profileBuilds.length - 1 ? ',' : ''}
-                </span>
-              ))}
-              {'\n'}  ],
-              {'\n'}  tech: [
-              {profileTech.map((t, i) => (
-                <span key={t}>
-                  {'\n'}    <span className="text-coral">'{t}'</span>
-                  {i < profileTech.length - 1 ? ',' : ''}
-                </span>
-              ))}
-              {'\n'}  ],
-              {'\n'}  focus: [
-              {profileFocus.map((f, i) => (
-                <span key={f}>
-                  {'\n'}    <span className="text-coral">'{f}'</span>
-                  {i < profileFocus.length - 1 ? ',' : ''}
-                </span>
-              ))}
-              {'\n'}  ]
-              {'\n'}{'}'}
-              {'\n'}
-              {'\n'}<span className="text-teal">export default</span> profile
-            </code>
-          </pre>
-        </div>
-
-        {/* Services */}
-        <div className="flex items-center justify-between mb-6">
-          <span className="font-mono text-[11px] tracking-[0.3em] uppercase text-white/30">
-            What I Do
-          </span>
-          <a
-            href="/services"
-            data-cursor="hover"
-            className="font-mono text-[11px] tracking-[0.2em] uppercase text-teal hover:text-teal-light transition-colors"
+        <div>
+          <div
+            ref={header.ref}
+            className={cn("flex items-center justify-between gap-5", header.className)}
+            style={header.style}
           >
-            View all services →
-          </a>
-        </div>
-        <div className="grid md:grid-cols-2 gap-6">
-          {services.map((s, i) => (
-            <div
-              key={s.title}
-              className="group relative p-6 rounded-2xl border border-white/5 hover:border-teal/30 transition-colors duration-500"
-              data-cursor="hover"
-            >
-              <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-teal/50 mb-3">
-                0{i + 1}
-              </div>
-              <h3 className="text-xl font-medium text-white mb-2">{s.title}</h3>
-              <p className="text-sm text-white/40 font-light leading-relaxed">{s.desc}</p>
-              <div className="absolute bottom-0 left-6 right-6 h-px w-0 group-hover:w-[calc(100%-3rem)] bg-teal/30 transition-all duration-700" />
+            <div className="min-w-0">
+              <p className="section-kicker">About</p>
+              <h2 className="mt-4 font-display text-4xl font-bold tracking-wide text-balance text-fg uppercase md:text-5xl">
+                From the foothills, for the foothills
+              </h2>
             </div>
-          ))}
+            <img
+              src="/images/matthew-hunt.png"
+              alt={`${BRAND_CONTACT.name}, founder of Upstate Technology Solutions`}
+              width={720}
+              height={720}
+              loading="lazy"
+              decoding="async"
+              className="size-24 shrink-0 rounded-full border-2 border-teal/40 object-cover shadow-[0_0_28px_rgb(62_207_192/0.18)] sm:size-28"
+            />
+          </div>
+          <p
+            ref={bio.ref}
+            className={cn(
+              "mt-5 text-base leading-relaxed text-pretty text-muted",
+              bio.className,
+            )}
+            style={bio.style}
+          >
+            I&rsquo;m <span className="font-semibold text-fg">{BRAND_CONTACT.name}</span>, founder
+            of Upstate Technology Solutions. I design and build websites and custom software for
+            businesses, nonprofits, churches, and everything in between, all hand-coded, not
+            assembled from a page builder. Based in Honea Path, Upstate South Carolina, working with
+            clients locally and remotely.
+          </p>
+          <p
+            ref={quote.ref}
+            className={cn(
+              "mt-5 border-l-2 border-teal/60 pl-5 text-base leading-relaxed text-pretty text-fg/85",
+              quote.className,
+            )}
+            style={quote.style}
+          >
+            Plenty of local businesses get by just fine without a new website or a new tool. My job
+            isn&rsquo;t to sell you technology; it&rsquo;s to give you an honest read on whether it
+            would actually help and to build only what&rsquo;s worth building.
+          </p>
+          <ul
+            ref={list.ref}
+            className={cn("mt-8 space-y-3 text-sm text-fg", list.className)}
+            style={list.style}
+          >
+            <li className="flex gap-3">
+              <span className="mt-2 size-1.5 shrink-0 rounded-full bg-teal" />
+              No templates dressed up as custom work
+            </li>
+            <li className="flex gap-3">
+              <span className="mt-2 size-1.5 shrink-0 rounded-full bg-teal" />
+              Hosting, care plans, and smart add-ons only if you want them
+            </li>
+            <li className="flex gap-3">
+              <span className="mt-2 size-1.5 shrink-0 rounded-full bg-teal" />
+              You own the site, the domain, and the keys
+            </li>
+          </ul>
         </div>
       </div>
     </section>

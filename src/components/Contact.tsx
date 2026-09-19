@@ -1,183 +1,354 @@
-import { Link } from 'react-router-dom';
-import { ArrowUpRight, Phone, Mail, MapPin, Github } from 'lucide-react';
-import AmbientParticles from '@/components/AmbientParticles';
-import { useReveal, reveal } from '@/lib/useReveal';
-import { useEffect, useState } from 'react';
+import { useState, type FormEvent } from "react";
+import { ArrowRight, Github, Mail, MapPin, Phone, Quote } from "lucide-react";
+import { useReveal } from "@/hooks/use-reveal";
+import { BRAND_CONTACT, CONTACT_FORM_ENDPOINT, TESTIMONIALS } from "@/lib/site-data";
+import { cn, scrollToSection } from "@/lib/utils";
 
-// Icon-only social/external profile links, kept separate from the internal
-// site navigation in the "Links" column below. Add more platforms here
-// (LinkedIn, X, Instagram, etc.) as they come online — each just needs an
-// icon, label (for a11y), and href.
-const socialLinks = [
-  { label: 'GitHub', href: 'https://github.com/M2theatthew', Icon: Github },
-];
+/**
+ * idle     – filling in the form
+ * sending  – posting to CONTACT_FORM_ENDPOINT (only when one is configured)
+ * sent     – the endpoint accepted it
+ * compose  – no endpoint configured: the message is ready to send from the
+ *            visitor's own mail app or Gmail (no third-party service needed)
+ */
+type Status = "idle" | "sending" | "sent" | "compose";
 
-export default function Contact() {
-  const { ref, visible } = useReveal<HTMLElement>();
-  const [time, setTime] = useState('');
+export function Contact() {
+  const [status, setStatus] = useState<Status>("idle");
+  const [error, setError] = useState("");
+  const [compose, setCompose] = useState<{ mailto: string; gmail: string } | null>(null);
+  const testimonial = TESTIMONIALS[1];
 
-  useEffect(() => {
-    const update = () => {
-      const now = new Date();
-      const et = now.toLocaleTimeString('en-US', {
-        timeZone: 'America/New_York',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-      });
-      setTime(et);
-    };
-    update();
-    const id = setInterval(update, 1000);
-    return () => clearInterval(id);
-  }, []);
+  const testimonialCard = useReveal({ y: 18 });
+  const aboutCard = useReveal({ delay: 90, y: 18 });
+  const formCard = useReveal<HTMLFormElement>({ delay: 180, y: 18 });
+  const contactRow = useReveal({ delay: 100, y: 16 });
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const name = String(data.get("name") ?? "").trim();
+    const email = String(data.get("email") ?? "").trim();
+    const message = String(data.get("message") ?? "").trim();
+    if (name.length < 2) {
+      setError("Please tell me who to follow up with.");
+      return;
+    }
+    if (!email.includes("@")) {
+      setError("I need a real email so I can send the quote.");
+      return;
+    }
+    if (message.length < 8) {
+      setError("A sentence or two about the project is plenty.");
+      return;
+    }
+
+    const phone = String(data.get("phone") ?? "").trim();
+    const looking = String(data.get("type") ?? "").trim();
+    const subject = `New project inquiry from ${name}`;
+    const details = [
+      `Name: ${name}`,
+      `Email: ${email}`,
+      ...(phone ? [`Phone: ${phone}`] : []),
+      ...(looking ? [`Looking for: ${looking}`] : []),
+    ];
+    const body = `${message}\n\n---\n${details.join("\n")}`;
+
+    if (CONTACT_FORM_ENDPOINT) {
+      setStatus("sending");
+      try {
+        const response = await fetch(CONTACT_FORM_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            name,
+            email,
+            phone,
+            project: looking,
+            message,
+            _subject: subject,
+          }),
+        });
+        if (!response.ok) throw new Error(`Form endpoint returned ${response.status}`);
+        setStatus("sent");
+        form.reset();
+      } catch {
+        setStatus("idle");
+        setError(
+          `That didn\u2019t go through. Please email ${BRAND_CONTACT.email} or call ${BRAND_CONTACT.phone}.`,
+        );
+      }
+      return;
+    }
+
+    // No form service configured: hand the finished message to the visitor's mail client.
+    const to = BRAND_CONTACT.email;
+    setCompose({
+      mailto: `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+      gmail: `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+    });
+    setStatus("compose");
+  }
 
   return (
-    <footer
+    <section
       id="contact"
-      ref={ref}
-      className={reveal(visible, 'relative pt-24 md:pt-32 pb-10 px-6 md:px-10 z-30 overflow-hidden')}
+      className="scroll-mt-24 relative overflow-hidden px-5 pt-24 pb-10 md:px-8"
     >
-      <AmbientParticles
-        density={45}
-        hues={[188, 340]}
-        glows={[
-          { x: 0.22, y: 0.35, hue: 188, alpha: 0.07, radiusFrac: 0.3 },
-          { x: 0.78, y: 0.4, hue: 340, alpha: 0.07, radiusFrac: 0.3 },
-        ]}
-        splashes={[{ x: 0.78, y: 0.25, hue: 188, count: 22 }]}
+      <img
+        src="/images/contact-bg.jpg"
+        alt=""
+        loading="lazy"
+        decoding="async"
+        className="absolute inset-0 h-full w-full object-cover"
       />
-      <div className="relative max-w-7xl mx-auto">
-        <div className="text-center mb-20">
-          <div className="font-mono text-[11px] tracking-[0.3em] uppercase text-teal/80 mb-6">
-            Get In Touch
-          </div>
-          <Link
-            to="/get-in-touch"
-            data-cursor="hover"
-            className="group inline-flex flex-wrap items-center justify-center gap-2 md:gap-4"
-          >
-            <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-light tracking-tight leading-none">
-              <span
-                className="bg-gradient-to-r from-teal to-coral bg-clip-text text-transparent"
-              >
-                Start a Project
-              </span>
-            </h2>
-            <ArrowUpRight
-              className="text-teal group-hover:rotate-45 transition-transform duration-500 w-8 h-8 md:w-12 md:h-12"
-            />
-          </Link>
-          <p className="mt-6 text-white/40 font-light max-w-md mx-auto">
-            No pressure to buy anything. Tell me what's going on and we'll
-            figure out together whether it's worth doing anything at all.
+      <div className="absolute inset-0 bg-bg/85" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_top,#0c1016_0%,transparent_40%)]" />
+
+      <div className="relative mx-auto grid max-w-6xl items-start gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {/* Testimonial — quote mark, body copy, and attribution all centered;
+            no leading dash before the name. */}
+        <article
+          ref={testimonialCard.ref}
+          className={cn(
+            "flex flex-col items-center rounded-xl border border-teal-dim/20 bg-bg-deep/40 p-5 text-center shadow-(--shadow-card) backdrop-blur-md sm:p-6",
+            testimonialCard.className,
+          )}
+          style={testimonialCard.style}
+        >
+          <Quote className="size-8 fill-teal-dim text-teal-dim" strokeWidth={1} />
+          <p className="mt-4 font-display text-base leading-relaxed text-pretty text-fg">
+            {testimonial.quote}
           </p>
-        </div>
+          <div className="mt-5">
+            <p className="font-display font-bold text-fg">{testimonial.name}</p>
+            <p className="font-display text-sm text-muted">{testimonial.role}</p>
+          </div>
+        </article>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-[0.8fr_1.5fr_1fr_0.9fr_0.7fr_0.9fr] gap-8 mb-16 border-t border-white/5 pt-12">
-          <div>
-            <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-white/30 mb-3">Phone</div>
-            <a
-              href="tel:+14804921911"
-              data-cursor="hover"
-              className="text-sm text-white/70 hover:text-white transition-colors flex items-center gap-2"
-            >
-              <Phone size={14} />
-              (480) 492-1911
-            </a>
-          </div>
-          <div>
-            <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-white/30 mb-3">Email</div>
-            <a
-              href="mailto:contact@upstatetechnologysolutions.com"
-              data-cursor="hover"
-              className="text-sm text-white/70 hover:text-white transition-colors flex items-start gap-2"
-            >
-              <Mail size={14} className="mt-0.5 flex-shrink-0" />
-              <span className="break-normal">
-                contact
-                <wbr />
-                @upstatetechnologysolutions.com
-              </span>
-            </a>
-          </div>
-          <div>
-            <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-white/30 mb-3">Based In</div>
-            <p className="text-sm text-white/70 flex items-start gap-2">
-              <MapPin size={14} className="mt-0.5 flex-shrink-0 text-teal" />
-              Honea Path, South Carolina
-            </p>
-          </div>
-          <div>
-            <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-white/30 mb-3">Local Time</div>
-            <p className="font-mono text-sm text-white/70 tabular-nums">
-              {time} <span className="text-white/30">ET</span>
-            </p>
-          </div>
-          <div>
-            <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-white/30 mb-3">Social</div>
-            <div className="flex items-center gap-3">
-              {socialLinks.map(({ label, href, Icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  data-cursor="hover"
-                  className="flex items-center justify-center w-9 h-9 rounded-full border border-white/10 bg-white/[0.02] text-white/60 hover:text-teal hover:border-teal/40 transition-colors"
+        <article
+          ref={aboutCard.ref}
+          className={cn(
+            "flex flex-col rounded-xl border border-teal-dim/20 bg-bg-deep/40 p-5 shadow-(--shadow-card) backdrop-blur-md sm:p-6",
+            aboutCard.className,
+          )}
+          style={aboutCard.style}
+        >
+          <p className="section-kicker">About me</p>
+          <h2 className="mt-2 font-display text-2xl font-bold text-fg">
+            Technology That
+            <br />
+            Works For
+            <br />
+            You.
+          </h2>
+          <p className="mt-3 font-display text-sm leading-relaxed text-pretty text-muted">
+            I provide technology solutions: websites, hosting, automation, and the unglamorous
+            upkeep, so local businesses across the Upstate can compete without a big-city agency
+            bill.
+          </p>
+          <button
+            type="button"
+            onClick={() => scrollToSection("about")}
+            className="pressable mt-4 inline-flex items-center gap-2 font-display text-sm font-semibold tracking-[0.14em] text-teal-dim uppercase"
+          >
+            Learn more
+            <ArrowRight className="size-4" />
+          </button>
+        </article>
+
+        {/* Form — sharp-cornered inputs, no dropdown/select, and a
+            rounded-rectangle (not pill) muted-teal submit button. */}
+        <form
+          ref={formCard.ref}
+          onSubmit={onSubmit}
+          className={cn(
+            "rounded-xl border border-teal-dim/25 bg-bg-deep/40 p-5 shadow-(--shadow-card) backdrop-blur-md sm:p-6 md:col-span-2 lg:col-span-1",
+            formCard.className,
+          )}
+          style={formCard.style}
+        >
+          <p className="section-kicker">Let&rsquo;s build something great</p>
+          <h2 className="mt-2 font-display text-2xl font-bold text-fg">
+            Ready to Grow Your Business?
+          </h2>
+          <div className="mt-4">
+            {status === "sent" ? (
+              <div className="flex min-h-64 flex-col justify-center">
+                <p className="font-display text-3xl font-bold tracking-wide text-teal-dim uppercase">
+                  Quote request in
+                </p>
+                <p className="mt-3 max-w-md font-display text-base leading-relaxed text-muted">
+                  Thanks! I’ll follow up shortly with next steps. If it’s urgent, mention that in a
+                  second note and I’ll move you up the list.
+                </p>
+                <button
+                  type="button"
+                  className="pressable mt-8 self-start rounded-md border border-border px-5 py-2.5 font-display text-sm font-semibold tracking-[0.12em] text-fg uppercase"
+                  onClick={() => setStatus("idle")}
                 >
-                  <Icon size={15} />
-                </a>
-              ))}
-            </div>
-          </div>
-          <div>
-            <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-white/30 mb-3">Links</div>
-            <div className="flex flex-col gap-1.5">
-              <Link
-                to="/get-in-touch"
-                data-cursor="hover"
-                className="text-sm text-white/70 hover:text-white transition-colors"
-              >
-                Get in Touch
-              </Link>
-              <Link
-                to="/services"
-                data-cursor="hover"
-                className="text-sm text-white/70 hover:text-white transition-colors"
-              >
-                Services
-              </Link>
-              <Link
-                to="/reviews"
-                data-cursor="hover"
-                className="text-sm text-white/70 hover:text-white transition-colors"
-              >
-                Reviews
-              </Link>
-            </div>
-          </div>
-        </div>
+                  Send another
+                </button>
+              </div>
+            ) : null}
 
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-white/5">
-          <div className="flex items-center gap-3">
-            <svg width="18" height="18" viewBox="0 0 24 24" className="text-teal">
-              <path d="M12 2L2 7l10 5 10-5-10-5z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-            </svg>
-            <span className="font-mono text-[11px] tracking-wider uppercase text-white/40">
-              Upstate Technology Solutions
-            </span>
+            {status === "compose" && compose ? (
+              <div className="flex min-h-64 flex-col justify-center">
+                <p className="font-display text-3xl font-bold tracking-wide text-teal-dim uppercase">
+                  Almost there
+                </p>
+                <p className="mt-3 max-w-md font-display text-base leading-relaxed text-muted">
+                  Your message is filled in. Pick where you’d like to send it from and hit send
+                  there.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <a
+                    href={compose.mailto}
+                    className="pressable inline-flex items-center gap-2 rounded-md bg-teal-dim px-5 py-2.5 font-display text-sm font-bold tracking-[0.12em] text-fg uppercase"
+                  >
+                    Open in Mail app
+                    <ArrowRight className="size-4" />
+                  </a>
+                  <a
+                    href={compose.gmail}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="pressable inline-flex items-center gap-2 rounded-md border border-border px-5 py-2.5 font-display text-sm font-semibold tracking-[0.12em] text-fg uppercase"
+                  >
+                    Open in Gmail
+                    <ArrowRight className="size-4" />
+                  </a>
+                </div>
+                <p className="mt-4 font-display text-sm text-muted">
+                  Or reach me directly at{" "}
+                  <a href={BRAND_CONTACT.emailHref} className="text-teal hover:text-teal-bright">
+                    {BRAND_CONTACT.email}
+                  </a>
+                  .
+                </p>
+                <button
+                  type="button"
+                  className="pressable mt-6 self-start font-display text-sm font-semibold tracking-[0.12em] text-muted uppercase hover:text-fg"
+                  onClick={() => setStatus("idle")}
+                >
+                  ← Edit message
+                </button>
+              </div>
+            ) : null}
+
+            {/* Fields stay mounted (just hidden) after "Almost there" so that
+                "Edit message" brings back what was typed. */}
+            <div
+              className={cn("grid gap-3", (status === "sent" || status === "compose") && "hidden")}
+            >
+              <Field label="Name" name="name" autoComplete="name" />
+              <Field label="Email" name="email" type="email" autoComplete="email" />
+              <Field label="What are you looking for?" name="type" />
+              <Field label="Phone" name="phone" type="tel" autoComplete="tel" optional />
+              <label className="grid gap-1.5 font-display text-sm text-muted">
+                What are you trying to get done?
+                <textarea
+                  name="message"
+                  rows={4}
+                  // text-base (16px): below that, iOS Safari zooms the whole
+                  // page in on focus (it treats a sub-16px input as "content
+                  // too small to type into" and auto-scales) — jarring on a
+                  // form that's meant to stay put. It'd otherwise inherit
+                  // this label's own text-sm (14px).
+                  className="rounded-sm border border-teal-dim/25 bg-bg-deep/40 px-3 py-2.5 font-display text-base text-fg backdrop-blur-md outline-none focus:border-teal-dim"
+                  suppressHydrationWarning
+                />
+              </label>
+              {error ? <p className="font-display text-sm text-amber">{error}</p> : null}
+              <button
+                type="submit"
+                disabled={status === "sending"}
+                className={cn(
+                  "pressable mt-1 inline-flex items-center justify-center gap-2 rounded-md bg-teal-dim px-6 py-2.5 font-display text-sm font-bold tracking-[0.14em] text-fg uppercase",
+                  status === "sending" && "opacity-70",
+                )}
+              >
+                {status === "sending" ? "Sending…" : "Send message"}
+                <ArrowRight className="size-4" />
+              </button>
+            </div>
           </div>
-          <div className="font-mono text-[10px] tracking-wider uppercase text-white/25">
-            © {new Date().getFullYear()} Upstate Technology Solutions · Honea Path, SC
-          </div>
-          <div className="font-mono text-[10px] tracking-wider uppercase text-white/25">
-            Real Code. No Page Builders.
-          </div>
-        </div>
+        </form>
       </div>
-    </footer>
+
+      {/* Contact row — sits at the very bottom of the section, right above the
+          footer, larger and brighter than the old muted line so it reads as a
+          real call to action. */}
+      <div
+        ref={contactRow.ref}
+        className={cn(
+          "relative mx-auto mt-20 flex max-w-6xl flex-wrap items-center justify-center gap-x-12 gap-y-5 font-display text-lg font-medium text-fg md:mt-28 md:text-xl",
+          contactRow.className,
+        )}
+        style={contactRow.style}
+      >
+        <a
+          href={BRAND_CONTACT.phoneHref}
+          className="inline-flex items-center gap-3 hover:text-teal-dim"
+        >
+          <Phone className="size-6 text-teal" strokeWidth={1.5} />
+          {BRAND_CONTACT.phone}
+        </a>
+        <a
+          href={BRAND_CONTACT.emailHref}
+          className="inline-flex items-center gap-3 hover:text-teal-dim"
+        >
+          <Mail className="size-6 text-teal" strokeWidth={1.5} />
+          {BRAND_CONTACT.email}
+        </a>
+        <span className="inline-flex items-center gap-3">
+          <MapPin className="size-6 text-teal" strokeWidth={1.5} />
+          {BRAND_CONTACT.location}
+        </span>
+        <a
+          href={BRAND_CONTACT.github}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-3 hover:text-teal-dim"
+        >
+          <Github className="size-6 text-teal" strokeWidth={1.5} />
+          GitHub
+        </a>
+      </div>
+    </section>
+  );
+}
+
+function Field({
+  label,
+  name,
+  type = "text",
+  autoComplete,
+  optional,
+}: {
+  label: string;
+  name: string;
+  type?: string;
+  autoComplete?: string;
+  optional?: boolean;
+}) {
+  return (
+    <label className="grid gap-1.5 font-display text-sm text-muted">
+      <span>
+        {label}
+        {optional ? <span className="text-faint"> · optional</span> : null}
+      </span>
+      <input
+        name={name}
+        type={type}
+        autoComplete={autoComplete}
+        // text-base: see the same note on the textarea above — keeps iOS
+        // Safari from zooming the page in when this field is focused.
+        className="h-10 rounded-sm border border-teal-dim/25 bg-bg-deep/40 px-3 font-display text-base text-fg backdrop-blur-md outline-none focus:border-teal-dim"
+        suppressHydrationWarning
+      />
+    </label>
   );
 }

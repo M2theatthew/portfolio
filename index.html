@@ -1,42 +1,81 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<link rel="icon" href="/favicon.ico" sizes="any" />
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-<link rel="manifest" href="/site.webmanifest" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link
-href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap"
-rel="stylesheet"
-/>
-<title>Upstate Technology Solutions · Matthew Hunt</title>
-<!-- Decodes the redirect from 404.html (see that file for why this
-    exists) back into a real path before React Router mounts. -->
-<script>
-(function (l) {
-if (l.search && l.search[1] === '/') {
-var decoded = l.search.slice(1).split('&').map(function (s) {
-return s.replace(/~and~/g, '&');
-}).join('?');
-window.history.replaceState(
-null, null,
-l.pathname.slice(0, -1) + decoded + l.hash
-);
-}
-})(window.location);
-</script>
-<meta
-name="description"
-content="Upstate Technology Solutions: web development for restaurants, churches, and local service businesses in Honea Path, SC. Real code, no page builders."
-/>
-</head>
-<body style="background-color: #05050a;">
-<div id="root" style="background-color: #05050a; min-height: 100vh;"></div>
-<script type="module" src="/src/main.tsx"></script>
-</body>
+<html lang="en" class="antialiased">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Upstate Technology Solutions | Websites, Hosting &amp; Smart Tech in Upstate SC</title>
+    <meta
+      name="description"
+      content="Hand-coded websites, reliable hosting, and smart technology for local businesses across Upstate South Carolina."
+    />
+    <meta name="theme-color" content="#12161c" />
+    <link rel="canonical" href="https://upstatetechnologysolutions.com/" />
+
+    <!-- Open Graph / link previews -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Upstate Technology Solutions" />
+    <meta property="og:title" content="Upstate Technology Solutions" />
+    <meta
+      property="og:description"
+      content="Hand-coded websites, reliable hosting, and smart technology for local businesses across Upstate South Carolina."
+    />
+    <meta property="og:url" content="https://upstatetechnologysolutions.com/" />
+    <meta property="og:image" content="https://upstatetechnologysolutions.com/og.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Upstate Technology Solutions" />
+    <meta
+      name="twitter:description"
+      content="Hand-coded websites, reliable hosting, and smart technology for local businesses across Upstate South Carolina."
+    />
+    <meta name="twitter:image" content="https://upstatetechnologysolutions.com/og.jpg" />
+
+    <!-- Icons / manifest -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="/favicon-512.png" sizes="512x512" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Fonts + the 3D map, fetched early so the hero paints sooner -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow+Semi+Condensed:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+    />
+    <link rel="preload" href="/models/south-carolina.glb" as="fetch" crossorigin="anonymous" />
+
+    <!-- Structured data: helps Google show the business name, phone, and area -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "ProfessionalService",
+        "name": "Upstate Technology Solutions",
+        "url": "https://upstatetechnologysolutions.com/",
+        "image": "https://upstatetechnologysolutions.com/og.jpg",
+        "description": "Hand-coded websites, reliable hosting, and smart technology for local businesses across Upstate South Carolina.",
+        "telephone": "+1-480-492-1911",
+        "email": "contact@upstatetechnologysolutions.com",
+        "foundingDate": "2018",
+        "founder": { "@type": "Person", "name": "Matthew Hunt" },
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Honea Path",
+          "addressRegion": "SC",
+          "addressCountry": "US"
+        },
+        "areaServed": "Upstate South Carolina",
+        "sameAs": ["https://github.com/M2theatthew"]
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      Upstate Technology Solutions: hand-coded websites, hosting, and smart technology for local
+      businesses in Upstate SC. Call (480) 492-1911 or email contact@upstatetechnologysolutions.com.
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

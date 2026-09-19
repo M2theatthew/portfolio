@@ -1,0 +1,258 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-sans: "Outfit", "Segoe UI", sans-serif;
+  --font-brand: "Space Grotesk", "Outfit", sans-serif;
+  --font-card: "Barlow Semi Condensed", "Barlow Condensed", "Arial Narrow", sans-serif;
+
+  --color-bg: #12161c;
+  --color-bg-deep: #0c1016;
+  --color-surface: #1a222c;
+  --color-surface-2: #222b36;
+  --color-fg: #eef3f6;
+  --color-muted: #8b96a3;
+  --color-faint: #6b7580;
+  --color-teal: #3ecfc0;
+  --color-teal-bright: #7ee8db;
+  --color-teal-dim: #1a9e92;
+  --color-ink: #0b1214;
+  --color-amber: #e8a14a;
+  --color-border: rgb(238 243 246 / 0.1);
+  --color-border-strong: rgb(238 243 246 / 0.18);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+
+  --shadow-border: 0 0 0 1px rgb(255 255 255 / 0.08);
+  --shadow-card: 0 0 0 1px rgb(255 255 255 / 0.08), 0 24px 60px rgb(0 0 0 / 0.45);
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --motion-quick: 150ms;
+  --motion-fast: 250ms;
+  --motion-reveal: 800ms;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Stops iOS Safari bumping the page's base text size up in landscape
+       orientation, which otherwise fights the site's own responsive
+       clamp()/breakpoint sizing. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    background-image:
+      radial-gradient(1200px 700px at 12% 0%, rgb(62 207 192 / 0.07), transparent 55%),
+      linear-gradient(180deg, rgb(12 16 22 / 0.42), rgb(12 16 22 / 0.62)),
+      url("/textures/wall.jpg");
+    background-attachment: fixed;
+    background-size: auto, auto, cover;
+    background-position: center;
+    min-height: 100%;
+    overflow-x: hidden;
+    /* The hero's 3D canvas and full-bleed map wrapper sit right at the
+       viewport edge; without this, a touch-drag that starts near that
+       edge (or the fixed background-attachment above) can trigger a
+       horizontal rubber-band scroll on mobile browsers. */
+    overscroll-behavior-x: none;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  /* Touch targets: remove the ~300ms tap delay and the double-tap-to-zoom
+     gesture on anything clickable, and drop the grey tap-highlight box
+     Android/iOS draw on press (the site already has its own :active/hover
+     feedback via .pressable and .hover-card below, so the default flash
+     just looks like a glitch on top of it). Inputs are excluded so normal
+     text-selection/caret gestures inside them still work as expected. */
+  a,
+  button,
+  [role="button"],
+  summary {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-teal) 40%, transparent);
+    color: var(--color-fg);
+  }
+}
+
+@layer components {
+  .pressable {
+    transition-property: transform;
+    transition-duration: var(--motion-quick);
+    transition-timing-function: var(--ease-out);
+  }
+  .pressable:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+
+  .nav-link {
+    position: relative;
+    font-family: var(--font-display);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    padding: 0.55rem 0.35rem;
+    transition-property: color;
+    transition-duration: var(--motion-quick);
+    transition-timing-function: var(--ease-out);
+  }
+  .nav-link:hover,
+  .nav-link[data-active="true"] {
+    color: var(--color-fg);
+  }
+  .nav-link[data-active="true"]::after {
+    content: "";
+    position: absolute;
+    left: 0.2rem;
+    right: 0.2rem;
+    bottom: 0.15rem;
+    height: 1px;
+    background: var(--color-teal);
+  }
+
+  .section-kicker {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--color-teal);
+  }
+
+  .modal-overlay {
+    z-index: 80;
+  }
+  .modal-content {
+    z-index: 81;
+  }
+
+  /* Whole-page fade-in: #root starts invisible and main.tsx flips on
+     .is-loaded a frame after mount, so the very first paint is never a
+     hard pop — the app fades in as one soft step, and every section's own
+     .reveal below then plays on top of that as it's scrolled to. */
+  #root {
+    opacity: 0;
+    transition: opacity 450ms var(--ease-out);
+  }
+  #root.is-loaded {
+    opacity: 1;
+  }
+
+  /* Reveal-on-scroll: driven by the useReveal hook (see src/hooks/use-reveal.ts).
+     Elements start faded/offset and settle into place once observed as
+     visible; --reveal-y and transition-delay are set per-element inline for
+     per-section travel distance and stagger.
+
+     Deliberately no `will-change` here: that hint permanently promotes an
+     element to its own GPU compositing layer for as long as the rule
+     applies, and with .reveal sitting on dozens of elements — many of which
+     already use backdrop-blur, a relatively expensive filter to composite —
+     that's what made scrolling and hovering feel laggy site-wide after the
+     reveal work landed, even though each element only transitions once. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(var(--reveal-y, 20px));
+    transition:
+      opacity var(--motion-reveal) var(--ease-out),
+      transform var(--motion-reveal) var(--ease-out);
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Compositor-only hover treatment for the frosted-glass cards (Services,
+     and anywhere else that opts in). The old pattern animated box-shadow
+     and border-color directly on the same element as backdrop-blur-md on
+     hover — backdrop-filter has to re-sample everything behind the
+     element on every single repaint, so animating paint properties like
+     box-shadow/border-color alongside it forced that expensive resample
+     on every frame of the transition, which is what read as hover
+     "lag"/stutter on desktop, worse with more cards on screen at once.
+
+     Fix: the card itself only ever transitions `transform` (a compositor
+     property — no repaint, no backdrop resample). The glow/border-color
+     change is drawn on a separate, plain (non-blurred) absolutely
+     positioned overlay that fades in via `opacity` — also compositor-only.
+     `.hover-card-glow`'s own box-shadow/border never change value, so
+     nothing about it needs to repaint mid-transition either; only its
+     opacity does.
+
+     This block is placed after `.reveal` on purpose: cards use both
+     classes (`.reveal` for the scroll-in entrance, `.hover-card` for
+     hover/press afterward), so at equal selector specificity the one
+     later in the cascade wins for elements carrying both. Defining this
+     after `.reveal` — and `.hover-card:hover` after `.reveal.is-visible`
+     — is what makes the fast 250ms hover transform/glow take over from
+     the one-shot 800ms reveal transition once a card has settled in,
+     rather than the reveal's slower transition silently winning out. */
+  .hover-card {
+    transition: transform var(--motion-fast) var(--ease-out);
+  }
+  .hover-card-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--motion-fast) var(--ease-out);
+  }
+  /* `hover: hover` scopes this to devices with a real pointer (mouse/
+     trackpad). Without it, tapping a card on a touch screen leaves the
+     browser holding that element in a synthetic `:hover` state — often
+     until the next unrelated tap elsewhere — which reads as the glow
+     "sticking" after you've already moved your finger away. Touch gets
+     its own equivalent, momentary feedback via `:active` instead. */
+  @media (hover: hover) {
+    .hover-card:hover {
+      transform: translateY(-2px);
+    }
+    .hover-card:hover .hover-card-glow {
+      opacity: 1;
+    }
+  }
+  .hover-card:active .hover-card-glow {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .pressable,
+  .nav-link,
+  .hover-card,
+  .hover-card-glow {
+    transition: none;
+  }
+  #root {
+    opacity: 1;
+    transition: none;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

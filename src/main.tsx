@@ -1,19 +1,19 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import App from './App.tsx';
-import { applyEffectsTierAttribute } from './lib/effectsTier';
-import './index.css';
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { RouterProvider } from "@tanstack/react-router";
+import { getRouter } from "./router";
+import "./styles.css";
 
-// Runs before first paint — every component and stylesheet rule that
-// gates on data-fx-tier / data-reduced-motion needs this decided up
-// front, not after the tree has already mounted at full effects.
-applyEffectsTierAttribute();
+const rootEl = document.getElementById("root")!;
 
-createRoot(document.getElementById('root')!).render(
+createRoot(rootEl).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </StrictMode>
+    <RouterProvider router={getRouter()} />
+  </StrictMode>,
 );
+
+// Let the first paint land, then fade the app in (see #root in styles.css) —
+// one soft step instead of the page popping in as soon as JS finishes.
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => rootEl.classList.add("is-loaded"));
+});
