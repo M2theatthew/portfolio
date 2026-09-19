@@ -1,8 +1,9 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import confetti from "canvas-confetti";
 import { ArrowRight, Github, Mail, MapPin, Phone, Quote } from "lucide-react";
 import { useReveal } from "@/hooks/use-reveal";
 import { BRAND_CONTACT, CONTACT_FORM_ENDPOINT, TESTIMONIALS } from "@/lib/site-data";
-import { cn, scrollToSection } from "@/lib/utils";
+import { cn, scrollToSection, usePrefersReducedMotion } from "@/lib/utils";
 
 /**
  * idle     – filling in the form
@@ -23,6 +24,34 @@ export function Contact() {
   const aboutCard = useReveal({ delay: 90, y: 18 });
   const formCard = useReveal<HTMLFormElement>({ delay: 180, y: 18 });
   const contactRow = useReveal({ delay: 100, y: 16 });
+
+  // Confetti scoped to the form card: a canvas overlay sized to the card
+  // (see the <canvas> below) so the burst stays contained inside the box
+  // instead of flying across the whole page.
+  const confettiCanvasRef = useRef<HTMLCanvasElement>(null);
+  const confettiInstance = useRef<ReturnType<typeof confetti.create> | null>(null);
+  const reducedMotion = usePrefersReducedMotion();
+
+  useEffect(() => {
+    if (!confettiCanvasRef.current) return;
+    confettiInstance.current = confetti.create(confettiCanvasRef.current, {
+      resize: true,
+      useWorker: true,
+    });
+    return () => {
+      confettiInstance.current?.reset();
+      confettiInstance.current = null;
+    };
+  }, []);
+
+  function celebrate() {
+    const fire = confettiInstance.current;
+    if (reducedMotion || !fire) return;
+    // Two bursts from the bottom corners, angled inward and up — same shape
+    // as a two-cannon confetti effect, just scaled down to fit the card.
+    fire({ particleCount: 60, angle: 60, spread: 55, startVelocity: 35, origin: { x: 0, y: 1 } });
+    fire({ particleCount: 60, angle: 120, spread: 55, startVelocity: 35, origin: { x: 1, y: 1 } });
+  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -74,6 +103,7 @@ export function Contact() {
         if (!response.ok) throw new Error(`Form endpoint returned ${response.status}`);
         setStatus("sent");
         form.reset();
+        celebrate();
       } catch {
         setStatus("idle");
         setError(
@@ -165,11 +195,16 @@ export function Contact() {
           ref={formCard.ref}
           onSubmit={onSubmit}
           className={cn(
-            "rounded-xl border border-teal-dim/25 bg-bg-deep/40 p-5 shadow-(--shadow-card) backdrop-blur-md sm:p-6 md:col-span-2 lg:col-span-1",
+            "relative overflow-hidden rounded-xl border border-teal-dim/25 bg-bg-deep/40 p-5 shadow-(--shadow-card) backdrop-blur-md sm:p-6 md:col-span-2 lg:col-span-1",
             formCard.className,
           )}
           style={formCard.style}
         >
+          <canvas
+            ref={confettiCanvasRef}
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-10 h-full w-full"
+          />
           <p className="section-kicker">Let&rsquo;s build something great</p>
           <h2 className="mt-2 font-display text-2xl font-bold text-fg">
             Ready to Grow Your Business?
@@ -206,6 +241,7 @@ export function Contact() {
                 <div className="mt-6 flex flex-wrap gap-3">
                   <a
                     href={compose.mailto}
+                    onClick={celebrate}
                     className="pressable inline-flex items-center gap-2 rounded-md bg-teal-dim px-5 py-2.5 font-display text-sm font-bold tracking-[0.12em] text-fg uppercase"
                   >
                     Open in Mail app
@@ -215,6 +251,7 @@ export function Contact() {
                     href={compose.gmail}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={celebrate}
                     className="pressable inline-flex items-center gap-2 rounded-md border border-border px-5 py-2.5 font-display text-sm font-semibold tracking-[0.12em] text-fg uppercase"
                   >
                     Open in Gmail

@@ -74,10 +74,15 @@ export function Portfolio({
           <button
             type="button"
             onClick={() => setShowAll((v) => !v)}
-            className="pressable mt-8 inline-flex items-center gap-2 font-display text-sm font-semibold tracking-[0.14em] text-teal uppercase"
+            className="pressable group mt-8 inline-flex items-center gap-2 font-display text-sm font-semibold tracking-[0.14em] text-teal uppercase transition-colors hover:text-teal-bright"
           >
             {showAll ? "Show featured only" : "View all projects"}
-            <ArrowRight className="size-4" />
+            <ArrowRight
+              className={cn(
+                "size-4 transition-transform duration-300 ease-out group-hover:rotate-90",
+                showAll && "rotate-90",
+              )}
+            />
           </button>
         </div>
 
